@@ -1,0 +1,12 @@
+S N B
+S N B
+S N B
+S N B
+S N B
+S B B
+B B B
+
+# Informing if user have availability in the period of the day (morning, afternoom and night) in each day of the week. Each line represent one day of the week. 1 is morning, 2 is tuesday, and so on.
+# B = Big
+# S = Smal
+# N = Nothing
