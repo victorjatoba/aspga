@@ -142,13 +142,51 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             state.output.fatal("Whoa!  It's not a SimpleFitness!!!",null);
         }
 
+        float fitnessValue = calculateFitnessValue();
+
         ((SimpleFitness)ind2.fitness).setFitness(state,
             /// ...the fitness...
-            (float)(((double)sum)/ind2.genome.length),
+            fitnessValue,
             ///... is the individual ideal?  Indicate here...
             sum == ind2.genome.length);
 
         ind2.evaluated = true;
+    }
 
+    public float calculateFitnessValue(BitVectorIndividual ind) {
+        ((acepts*100)/qtdFixedConstraints) + ((acepts*100)/qtdFixedConstraints)
+        (float)(((double)sum)/ind2.genome.length)
+    }
+
+    /**
+    *   Hard Subjects should be alocated in the period of the day that the user
+    *   have more intelectual facility for to study.
+    */
+    public void hardSubjectInEasyPeriod() {
+    }
+
+    /**
+    *   Check if the subjects are studies in one time only.
+    */
+    public void notCostAllTimeInTheSameSubject() {
+    }
+
+    /**
+    *   Check if the study plan have grow-up learn.
+    */
+    public void toStudyGradually() {
+    }
+
+    /**
+    *   Check if have subjects in the period of the day if the
+    *   user don't have disponibility.
+    */
+    public void SubjectInInappropriatePeriod() {
+    }
+
+    /**
+    *   Check if the hours to leisure foi atendida.
+    */
+    public void hoursToLeisure() {
     }
 }
