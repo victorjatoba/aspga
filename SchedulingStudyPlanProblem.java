@@ -160,7 +160,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
     /**
     *   Hard Subjects should be alocated in the period of the day that the user
-    *   have more intelectual facility for to study.
+    *   have more intelectual facility for to learn.
     */
     public void hardSubjectInEasyPeriod() {
     }

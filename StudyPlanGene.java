@@ -9,13 +9,13 @@ package ec.app.pea;
 import ec.gp.*;
 
 /**
- * StudyPlanData.java
+ * StudyPlanGene.java
  *
  * Modified: Mon Nov 26 02:29 2013
  * By: Victor Jatoba
  */
 
-public class StudyPlanData {
+public class StudyPlanGene extends Gene {
 	public ArrayList<DayPlan> week;
 	/*
 	public DayPlan monday;
@@ -25,11 +25,11 @@ public class StudyPlanData {
 	public DayPlan friday;
 	public DayPlan saturday;
 	public DayPlan sunday;
-	*/
 
-	public StudyPlanData ()	{
+	public StudyPlanGene ()	{
 		this.week = fillWeek();
 	}
+	*/
 
 	public ArrayList<DayPlan> fillWeek()
 	{
