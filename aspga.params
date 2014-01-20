@@ -52,6 +52,14 @@ eval.problem = ec.app.pea.SchedulingStudyPlanProblem
 #
 
 eval.problem.courseinformation 	= datastructure/CourseInformation.in
-eval.problem.intelectualavaible = datastructure/IntelectualAvaible.in
-eval.problem.dayperiodavaible 	= datastructure/DayPeriodAvaible.in
+eval.problem.intelectualavaible = datastructure/IntelectualAvailable.in
+eval.problem.dayperiodavaible 	= datastructure/DayPeriodAvailable.in
 eval.problem.studentinformation = datastructure/StudentInformation.in
+
+#
+# output  configurations
+#
+
+# print-params = true
+# print-unaccessed-params = true
+# print-unused-params = true
