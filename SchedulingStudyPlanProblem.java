@@ -12,8 +12,11 @@ import ec.simple.*;
 import ec.vector.BitVectorIndividual;
 import ec.util.*; //Parameter
 
+//Data packages
+import ec.app.aspga.Student;
+import ec.app.aspga.Subject;
 
-//Packages to read
+//Java Packages
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -24,6 +27,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.ArrayList;
+import java.lang.Character;
 
 /**
  * SchedulingStudyPlanProblem.java
@@ -73,6 +78,32 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
         printInput(courseInformationVector, "CourseInformation");
 
+        ArrayList<Subject> subjects = fillSubjects(courseInformationVector);
+    }
+
+    /**
+    *   Fill the Subjects with the input file
+    */
+    public ArrayList<Subject> fillSubjects(Vector<String> subjectsIn) {
+        ArrayList<Subject> subjects = new ArrayList<Subject>();
+
+        if (subjectsIn != null) {
+            for (String line: subjectsIn) {
+                String[] subjectDificulty = line.split(" ");
+
+                Subject subject = new Subject();
+                subject.setName(subjectDificulty[0]);
+                char dificultyChar = subjectDificulty[1].charAt(0);
+                int dificulty = Character.getNumericValue(dificultyChar);
+                //int dificulty = dificultyChar - '0';
+                subject.setDificulty(dificulty);
+                subjects.add(subject);
+            }
+        } else {
+            state.output.error("SSPP| Error: The vector of Subjects are null!");
+        }
+
+        return subjects;
     }
 
     /**

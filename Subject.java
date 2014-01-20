@@ -6,6 +6,7 @@
 
 
 package ec.app.aspga;
+import ec.app.aspga.util.ValidationUtil;
 
 /**
  * Subject.java
@@ -36,14 +37,7 @@ public class Subject
 
 	public void setDificulty(int dificulty)
 	{
-		if(ValidationUtil.isBetweenOneAndFive(dificulty))
-		{
-			this.dificulty = dificulty;
-		}
-		else
-		{
-			state.output.fatal("The value of dificulty could be between 1 and 5",null);
-		}
+		this.dificulty = dificulty;
 	}
 /*
 	public int getImportance()

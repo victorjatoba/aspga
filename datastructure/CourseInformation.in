@@ -1,11 +1,4 @@
-subjectName = Math
-dificultyLevel = 4
-
-subjectName = Algorithm
-dificultyLevel = 3
-
-subjectName = AI
-dificultyLevel = 4
-
-subjectName = TCC
-dificultyLevel = 5
+Math 4
+Algorithm 3
+AI 4
+TCC 5
