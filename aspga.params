@@ -45,7 +45,7 @@ select.tournament.size		= 2
 # We specify our problem here
 #
 
-eval.problem = ec.app.pea.SchedulingStudyPlanProblem
+eval.problem = ec.app.aspga.SchedulingStudyPlanProblem
 
 #
 # Here we specify the particular files to do induction over

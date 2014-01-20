@@ -5,7 +5,7 @@
 */
 
 
-package ec.app.pea;
+package ec.app.aspga;
 
 /**
  * SubjectWorkload.java

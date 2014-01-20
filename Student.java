@@ -5,9 +5,7 @@
 */
 
 
-package ec.app.pea;
-
-import ec.app.pea.ValidationUtil;
+package ec.app.aspga;
 
 /**
  * Student.java

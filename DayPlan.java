@@ -5,11 +5,11 @@
 */
 
 
-package ec.app.pea;
+package ec.app.aspga;
 
 /*
  * DayPlan.java
- * 
+ *
  * Modified: Thu Nov 26 02:29 2013
  * By: Victor Jatoba
  */

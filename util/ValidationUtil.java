@@ -5,11 +5,11 @@
 */
 
 
-package ec.app.pea.util;
+package ec.app.aspga.util;
 
 /**
  * ValidationUtil.java
- * 
+ *
  * Created: Mon Nov 26 02:29 2013
  * By: Victor Jatoba
  */

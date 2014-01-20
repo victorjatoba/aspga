@@ -5,7 +5,7 @@
 */
 
 
-package ec.app.pea;
+package ec.app.aspga;
 import ec.util.*;
 import ec.*;
 import ec.simple.*;
