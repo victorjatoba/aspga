@@ -8,12 +8,12 @@
 package ec.app.aspga;
 import java.util.ArrayList;
 /**
- * DayPeriodAvailable.java
+ * PeriodAvailable.java
  *
  * Modified: Mon Jan 20 22:42 2014
  * By: Victor Jatoba
  */
-public class DayPeriodAvailable {
+public class PeriodAvailable {
 
 	private Period monday;
 	private Period tuesday;

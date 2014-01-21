@@ -57,7 +57,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
     ArrayList<Subject> subjects;
     Student student;
-    DayPeriodAvailable dayPeriodAvailable;
+    PeriodAvailable dayPeriodAvailable;
+    PeriodAvailable intelectualAvailable;
 
     public void setup (  final EvolutionState state, final Parameter base) {
         this.state = state;
@@ -76,7 +77,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         verifyInputExistence(courseInformationInput, intelectualAvailableInput, dayPeriodAvailableInput, studentInformationInput);
 
         Vector<String> courseInformationVector = convertFileToVectorString(courseInformationInput);
-        Vector<String> intelectuAlavailableVector = convertFileToVectorString(intelectualAvailableInput);
+        Vector<String> intelectualAvailableVector = convertFileToVectorString(intelectualAvailableInput);
         Vector<String> dayPeriodAvailableVector = convertFileToVectorString(dayPeriodAvailableInput);
         Vector<String> studentInformationVector = convertFileToVectorString(studentInformationInput);
 
@@ -84,15 +85,32 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
         this.subjects = fillSubjects(courseInformationVector);
         this.student = fillStudent(studentInformationVector);
-        this.dayPeriodAvailable = fillDayPeriodAvailable(dayPeriodAvailableVector);
-
+        this.dayPeriodAvailable = fillPeriodAvailable(dayPeriodAvailableVector);
+        this.intelectualAvailable = fillPeriodAvailable(intelectualAvailableVector);
     }
 
     /**
-    *   Fill the DayPeriodAvailable information with the input file
+    *   Fill the PeriodAvailable information with the input file
     */
-    public DayPeriodAvailable fillDayPeriodAvailable(Vector<String> periodAvailables) {
-        DayPeriodAvailable dayPeriodAvailable = new DayPeriodAvailable();
+    public PeriodAvailable fillPeriodAvailable(Vector<String> periodAvailables) {
+        PeriodAvailable periodAvailable = new PeriodAvailable();
+        Period[] periods = getPeriodsStandarized(periodAvailables);
+
+        periodAvailable.setMonday(periods[0]);
+        periodAvailable.setTuesday(periods[1]);
+        periodAvailable.setWednesday(periods[2]);
+        periodAvailable.setThursday(periods[3]);
+        periodAvailable.setFriday(periods[4]);
+        periodAvailable.setSaturday(periods[5]);
+        periodAvailable.setSunday(periods[6]);
+
+        return periodAvailable;
+    }
+
+    /**
+    *   Change a vector of the string in a array of the Periods
+    */
+    public Period[] getPeriodsStandarized(Vector<String> periodAvailables) {
         Period[] periods = new Period[7];
 
         if (periodAvailables != null) {
@@ -108,19 +126,11 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
                 periods[i++] = period;
             }
 
-            dayPeriodAvailable.setMonday(periods[0]);
-            dayPeriodAvailable.setTuesday(periods[1]);
-            dayPeriodAvailable.setWednesday(periods[2]);
-            dayPeriodAvailable.setThursday(periods[3]);
-            dayPeriodAvailable.setFriday(periods[4]);
-            dayPeriodAvailable.setSaturday(periods[5]);
-            dayPeriodAvailable.setSunday(periods[6]);
-
         } else {
-            state.output.error("SSPP| Error: The DayPeriodAvailable information are null!");
+            state.output.error("SSPP| Error: The periodAvailables information are null!");
         }
 
-        return dayPeriodAvailable;
+        return periods;
     }
 
     /**
