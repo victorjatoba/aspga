@@ -16,7 +16,7 @@ package ec.app.aspga;
 public class Student
 {
 	private String name;
-	private float hoursToLeisure; //per week
+	private int hoursToLeisure; //per week
 
 	public String getName()
 	{
@@ -28,12 +28,12 @@ public class Student
 		this.name = name;
 	}
 
-	public float getHoursToLeisure()
+	public int getHoursToLeisure()
 	{
 		return this.hoursToLeisure;
 	}
 
-	public void setHoursToLeisure(float hoursToLeisure)
+	public void setHoursToLeisure(int hoursToLeisure)
 	{
 		this.hoursToLeisure = hoursToLeisure;
 	}

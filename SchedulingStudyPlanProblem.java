@@ -55,6 +55,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     public EvolutionState state;
     public Parameter base;
 
+    ArrayList<Subject> subjects;
+    Student student;
+
     public void setup (  final EvolutionState state, final Parameter base) {
         this.state = state;
         this.base = base;
@@ -76,9 +79,48 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         Vector<String> dayPeriodAvailableVector = convertFileToVectorString(dayPeriodAvailableInput);
         Vector<String> studentInformationVector = convertFileToVectorString(studentInformationInput);
 
-        printInput(courseInformationVector, "CourseInformation");
+        printInputLines(courseInformationVector, "CourseInformation");
 
-        ArrayList<Subject> subjects = fillSubjects(courseInformationVector);
+        this.subjects = fillSubjects(courseInformationVector);
+        this.student = fillStudent(studentInformationVector);
+    }
+
+    /**
+    *   Print all the classes filled
+    */
+    public void printInputConverted() {
+        System.out.println("-----------------------\nnumber of subjects: " + subjects.size());
+        for (Subject subject : this.subjects) {
+            System.out.println("Name: " + subject.getName());
+            System.out.println("Dificulty: " + subject.getDificulty());
+        }
+
+        System.out.println("-----------------------\nStudent:");
+        System.out.println("Name: " + this.student.getName());
+        System.out.println("hoursToLeisure: " + this.student.getHoursToLeisure());
+
+    }
+
+    /**
+    *   Fill the Student information with the input file
+    */
+    public Student fillStudent(Vector<String> studentIn) {
+        Student student = new Student();
+
+        if (studentIn != null) {
+            for (String line: studentIn) {
+                String[] studentInfo = line.split(" ");
+
+                student.setName(studentInfo[0]);
+                char hoursToLeisureChar = studentInfo[1].charAt(0);
+                int hoursToLeisure = Character.getNumericValue(hoursToLeisureChar);
+                student.setHoursToLeisure(hoursToLeisure);
+            }
+        } else {
+            state.output.error("SSPP| Error: The Student information are null!");
+        }
+
+        return student;
     }
 
     /**
@@ -180,7 +222,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     /**
     *   Print in the console the lines of the input.
     */
-    public void printInput(Vector<String> lines, String type) {
+    public void printInputLines(Vector<String> lines, String type) {
 
         System.out.println("\n----------------"+ type +"--------------------!");
 
