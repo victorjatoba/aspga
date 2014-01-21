@@ -6,7 +6,7 @@
 
 
 package ec.app.aspga;
-
+import  java.util.ArrayList;
 /*
  * DayPlan.java
  *
@@ -14,41 +14,36 @@ package ec.app.aspga;
  * By: Victor Jatoba
  */
 
-public class DayPlan
-{
-	public Array<SubjectWorkload> morning;
-	public Array<SubjectWorkload> afternoon;
-	public Array<SubjectWorkload> night;
+public class DayPlan {
 
-	public void addMorningInformation(SubjectWorkload subjectWorkload)
-	{
-		this.morning.add(subjectWorkload);
-	}
+	public ArrayList<SubjectWorkload> morning;
+	public ArrayList<SubjectWorkload> afternoon;
+	public ArrayList<SubjectWorkload> night;
 
-	public void addAfternoonInformation(SubjectWorkload subjectWorkload)
-	{
-		this.afternoon.add(subjectWorkload);
-	}
-
-	public void addNightInformation(SubjectWorkload subjectWorkload)
-	{
-		this.night.add(subjectWorkload);
-	}
-
-	public void getMorningInformation()
-	{
+	public ArrayList<SubjectWorkload> getMorning() {
 		return this.morning;
 	}
 
-	public void getAfternoonInformation()
-	{
+	public void setMorning(ArrayList<SubjectWorkload> morning) {
+		this.morning = morning;
+	}
+
+	public ArrayList<SubjectWorkload> getAfternoon() {
 		return this.afternoon;
 	}
 
-	public void getNightInformation()
-	{
+	public void setAfternoon(ArrayList<SubjectWorkload> afternoon) {
+		this.afternoon = afternoon;
+	}
+
+	public ArrayList<SubjectWorkload> getNight() {
 		return this.night;
 	}
+
+	public void setNight(ArrayList<SubjectWorkload> night) {
+		this.night = night;
+	}
+
 }
 
 

@@ -1,0 +1,3 @@
+ctrl+shift+B = compile
+ctrl+alt+A = generate Getters and Setters
+ctrl+alt+C = generate Constructor

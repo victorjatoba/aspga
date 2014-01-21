@@ -28,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.ArrayList;
+//import java.util.Array;
 import java.lang.Character;
 
 /**
@@ -41,7 +42,6 @@ import java.lang.Character;
  * @author victorjatoba
  * @version 1.0
  */
-
 
 public class SchedulingStudyPlanProblem extends Problem implements SimpleProblemForm
 {
@@ -57,6 +57,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
     ArrayList<Subject> subjects;
     Student student;
+    DayPeriodAvailable dayPeriodAvailable;
 
     public void setup (  final EvolutionState state, final Parameter base) {
         this.state = state;
@@ -83,22 +84,43 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
         this.subjects = fillSubjects(courseInformationVector);
         this.student = fillStudent(studentInformationVector);
+        this.dayPeriodAvailable = fillDayPeriodAvailable(dayPeriodAvailableVector);
+
     }
 
     /**
-    *   Print all the classes filled
+    *   Fill the DayPeriodAvailable information with the input file
     */
-    public void printInputConverted() {
-        System.out.println("-----------------------\nnumber of subjects: " + subjects.size());
-        for (Subject subject : this.subjects) {
-            System.out.println("Name: " + subject.getName());
-            System.out.println("Dificulty: " + subject.getDificulty());
+    public DayPeriodAvailable fillDayPeriodAvailable(Vector<String> periodAvailables) {
+        DayPeriodAvailable dayPeriodAvailable = new DayPeriodAvailable();
+        Period[] periods = new Period[7];
+
+        if (periodAvailables != null) {
+            int i = 0;
+            for (String line: periodAvailables) {
+                String[] periodAvailablesInfo = line.split(" ");
+
+                Period period = new Period();
+                period.setMorning(periodAvailablesInfo[0].charAt(0));
+                period.setAfternoon(periodAvailablesInfo[1].charAt(0));
+                period.setNight(periodAvailablesInfo[2].charAt(0));
+
+                periods[i++] = period;
+            }
+
+            dayPeriodAvailable.setMonday(periods[0]);
+            dayPeriodAvailable.setTuesday(periods[1]);
+            dayPeriodAvailable.setWednesday(periods[2]);
+            dayPeriodAvailable.setThursday(periods[3]);
+            dayPeriodAvailable.setFriday(periods[4]);
+            dayPeriodAvailable.setSaturday(periods[5]);
+            dayPeriodAvailable.setSunday(periods[6]);
+
+        } else {
+            state.output.error("SSPP| Error: The DayPeriodAvailable information are null!");
         }
 
-        System.out.println("-----------------------\nStudent:");
-        System.out.println("Name: " + this.student.getName());
-        System.out.println("hoursToLeisure: " + this.student.getHoursToLeisure());
-
+        return dayPeriodAvailable;
     }
 
     /**
@@ -304,5 +326,36 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *   Check if the hours to leisure foi atendida.
     */
     public void hoursToLeisure() {
+    }
+
+    /**
+    *   Print all the classes filled
+    */
+    public void printInputConverted() {
+        System.out.println("-----------------------\nnumber of subjects: " + subjects.size());
+        for (Subject subject : this.subjects) {
+            System.out.println("Name: " + subject.getName());
+            System.out.println("Dificulty: " + subject.getDificulty());
+        }
+
+        System.out.println("-----------------------\nStudent:");
+        System.out.println("Name: " + this.student.getName());
+        System.out.println("hoursToLeisure: " + this.student.getHoursToLeisure());
+
+        System.out.println("-----------------------\nDayPeriodAvailable: ");
+        Period period = new Period();
+        period = this.dayPeriodAvailable.getMonday();
+        System.out.println("Monday: " +     period.getMorning() + " " +
+                                            period.getAfternoon() + " " +
+                                            period.getNight());
+        period = this.dayPeriodAvailable.getTuesday();
+        System.out.println("Tuesday: " +    period.getMorning() + " " +
+                                            period.getAfternoon() + " " +
+                                            period.getNight());
+        period = this.dayPeriodAvailable.getWednesday();
+        System.out.println("Wednesday: " +     period.getMorning() + " " +
+                                            period.getAfternoon() + " " +
+                                            period.getNight());
+
     }
 }
