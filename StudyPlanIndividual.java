@@ -15,7 +15,7 @@ import ec.gp.*;
  * By: Victor Jatoba
  */
 
-public class StudyPlanGene extends Gene {
+public class StudyPlanIndividual {
 	public ArrayList<DayPlan> week;
 	/*
 	public DayPlan monday;

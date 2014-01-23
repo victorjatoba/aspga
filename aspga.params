@@ -33,6 +33,7 @@ pop.subpop.0.species 			= ec.vector.BitVectorSpecies
 
 pop.subpop.0.species.fitness 	= ec.simple.SimpleFitness
 pop.subpop.0.species.ind		= ec.vector.BitVectorIndividual
+pop.subpop.0.species.gene 		= ec.app.aspga.SubjectWorkloadGene
 
 pop.subpop.0.species.genome-size	= 20
 pop.subpop.0.species.crossover-type	= one

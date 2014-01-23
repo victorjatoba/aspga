@@ -162,6 +162,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         ArrayList<Subject> subjects = new ArrayList<Subject>();
 
         if (subjectsIn != null) {
+            int i = 0;
             for (String line: subjectsIn) {
                 String[] subjectDificulty = line.split(" ");
 
@@ -171,6 +172,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
                 int dificulty = Character.getNumericValue(dificultyChar);
                 //int dificulty = dificultyChar - '0';
                 subject.setDificulty(dificulty);
+                subject.setId(i++);
                 subjects.add(subject);
             }
         } else {
@@ -336,6 +338,12 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *   Check if the hours to leisure foi atendida.
     */
     public void hoursToLeisure() {
+    }
+
+    /**
+    *   Fixed. Check if have subjects consecutively in one period of the day.
+    */
+    public void subjectsConsecutively() {
     }
 
     /**

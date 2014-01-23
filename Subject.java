@@ -16,8 +16,9 @@ import ec.app.aspga.util.ValidationUtil;
  */
 public class Subject
 {
-	private String name;
-	private int dificulty;
+	int id;
+	String name;
+	int dificulty;
 //	private int importance;
 
 	public String getName()
@@ -39,24 +40,14 @@ public class Subject
 	{
 		this.dificulty = dificulty;
 	}
-/*
-	public int getImportance()
+
+	public int getId()
 	{
-		return this.importance;
+		return this.id;
 	}
 
-	public void setImportance(int importance)
+	public void setId(int id)
 	{
-		if(ValidationUtil.isBetweenOneAndFive(importance))
-		{
-			this.importance = importance;
-		}
-		else
-		{
-			state.output.fatal("The value of importance could be between 1 and 5",null);
-		}
+		this.id = id;
 	}
-*/
 }
-
-
