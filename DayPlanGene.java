@@ -81,7 +81,7 @@ public class DayPlanGene extends Gene {
         //If I don't have any SubjectWorkload, just add one.
         if(mutationType == 0 || vectorsLength == 0) {
 //            System.out.println("---0---");
-            insertSubjectWorkload(state, thread);
+            mutated = insertSubjectWorkload(state, thread);
         } else if(mutationType == 1) {
 //            System.out.println("---1---");
             mutated = removeSubjectWorkload();
@@ -107,10 +107,13 @@ public class DayPlanGene extends Gene {
      * @param state
      * @param thread
      *
+	 * @return 	<code>true</code>	if the subjectWorkload was added successfully.
+     * 			<code>false</code>  otherwise.
+     *
      * @see {@link State}
      * @see {@link SubjectWorkload}
      */
-    public void insertSubjectWorkload(EvolutionState state, final int thread) {
+    public Boolean insertSubjectWorkload(EvolutionState state, final int thread) {
         Random random = new Random();
 
         int workload = (random.nextInt(12) + 1); //random from 1 to 12. Min and max per period of the day.
@@ -122,18 +125,22 @@ public class DayPlanGene extends Gene {
         subjectNew.setId(subjectRandom.getId());
         subjectNew.setDificulty(subjectRandom.getDificulty());
 */
-        Subject subjectRandom = subjects.get(state.random[thread].nextInt(subjects.size()));
+        Subject subjectRandom = subjects.get(state.random[0].nextInt(subjects.size()));
         Subject subjectNew = getNewSubjectInstance(subjectRandom);
         subjectWorkload.setSubject(subjectNew);
 
         int periodOfTheDay = random.nextInt(3); //random from 0 to 2
-        if(periodOfTheDay == 0) {
+        if(periodOfTheDay == 0 && !contens(morning, subjectWorkload)) {
             this.morning.add(subjectWorkload);
-        } else if (periodOfTheDay == 1) {
+        } else if (periodOfTheDay == 1 && !contens(afternoon, subjectWorkload)) {
             this.afternoon.add(subjectWorkload);
-        } else {
+        } else if(!contens(night, subjectWorkload)) {
             this.night.add(subjectWorkload);
+        } else {
+            return Boolean.FALSE;
         }
+
+        return Boolean.TRUE;
     }
 
     /**
@@ -315,14 +322,34 @@ public class DayPlanGene extends Gene {
             SubjectWorkload subjectWorkload = getNewSubjectWorkloadInstance(state, thread);
 
             int periodOfTheDay = random.nextInt(3); //random from 0 to 2
-            if(periodOfTheDay == 0) {
+            if(periodOfTheDay == 0 && !contens(morning, subjectWorkload)) {
                 this.morning.add(subjectWorkload);
-            } else if (periodOfTheDay == 1) {
+            } else if (periodOfTheDay == 1 && !contens(afternoon, subjectWorkload)) {
                 this.afternoon.add(subjectWorkload);
-            } else {
+            } else if(!contens(night, subjectWorkload)) {
                 this.night.add(subjectWorkload);
             }
         }
+    }
+
+    /**
+     * Verify if the array of subjectWorkloads contens the subjectWorkload passed by param.
+     *
+     * @param  periodOfTheDay 	period of the day that to be searched.
+     * @param  sw 				the subjectWorkload to be found.
+     *
+     * @return 	<code>true</code>	if found.
+     * 			<code>false</code> 	otherwise.
+     */
+    public Boolean contens(ArrayList<SubjectWorkload> periodOfTheDay, SubjectWorkload sw) {
+
+    	SubjectWorkload swToBeFind = sw;
+        for (SubjectWorkload swActual : periodOfTheDay) {
+            if(swActual.getSubject().getId() == swToBeFind.getSubject().getId()){
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
     }
 
     @Override
@@ -416,25 +443,29 @@ public class DayPlanGene extends Gene {
 	*/
 	@Override
 	public String printGeneToStringForHumans() {
-		ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
-		String output;
-        output = "" + (	"--------------------------\n" +
-        				"number of subjectWorkloads: " + subjectWorkloads.size() +
-        				"--------------------------\n");
+        ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
+        subjectWorkloads.addAll(this.morning);
+        subjectWorkloads.addAll(this.afternoon);
+        subjectWorkloads.addAll(this.night);
 
-        output += "" + ("\nmorning: ");
+        String output = new String("");
+        output += "" + ( "--------------------------\n" +
+                        "number of subjectWorkloads: " + subjectWorkloads.size() +
+                        "\n--------------------------\n");
+
+        output += "" + ("\n[Morning] \n");
         for (SubjectWorkload subjectWorkload : morning) {
             float workload = ((float)subjectWorkload.getWorkload())/(float)2;
             output += "" + (subjectWorkload.getSubject().getName() + " " +
                                 workload + "\n");
         }
-        System.out.println("\nafternoon: ");
+        output += "" + ("\n[Afternoon] \n");
         for (SubjectWorkload subjectWorkload : afternoon) {
             float workload = ((float)subjectWorkload.getWorkload())/(float)2;
             output += "" + (subjectWorkload.getSubject().getName() + " " +
                                 workload+ "\n");
         }
-        System.out.println("\nnight: ");
+        output += "" + ("\n[Night] \n");
         for (SubjectWorkload subjectWorkload : night) {
             float workload = ((float)subjectWorkload.getWorkload())/(float)2;
             output += "" + (subjectWorkload.getSubject().getName() + " " +
@@ -442,8 +473,8 @@ public class DayPlanGene extends Gene {
         }
         output += "--------------------------\n";
 
-		return output;
-	}
+        return output;
+    }
 
    	/**
     * Fill the Subjects with the input file

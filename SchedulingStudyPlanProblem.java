@@ -9,7 +9,7 @@ package ec.app.aspga;
 import ec.util.*;
 import ec.*;
 import ec.simple.*;
-import ec.vector.BitVectorIndividual;
+import ec.vector.GeneVectorIndividual;
 import ec.util.*; //Parameter
 
 //Data packages
@@ -279,29 +279,29 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     {
         if (ind.evaluated) return;
 
-        if (!(ind instanceof BitVectorIndividual)) {
-            state.output.fatal("Whoa!  It's not a BitVectorIndividual!!!",null);
+        if (!(ind instanceof GeneVectorIndividual)) {
+            state.output.fatal("Whoa!  It's not a GeneVectorIndividual!!!",null);
         }
 
         int sum=0;
-        BitVectorIndividual ind2 = (BitVectorIndividual)ind;
+        GeneVectorIndividual indGeneVector = (GeneVectorIndividual)ind;
 
-        if (!(ind2.fitness instanceof SimpleFitness)) {
+        if (!(indGeneVector.fitness instanceof SimpleFitness)) {
             state.output.fatal("Whoa!  It's not a SimpleFitness!!!",null);
         }
 
-        float fitnessValue = calculateFitnessValue();
+        float fitnessValue = calculateFitnessValue(indGeneVector);
 
-        ((SimpleFitness)ind2.fitness).setFitness(state,
+        ((SimpleFitness)indGeneVector.fitness).setFitness(state,
             /// ...the fitness...
             fitnessValue,
             ///... is the individual ideal?  Indicate here...
-            sum == ind2.genome.length);
+            (fitnessValue == (float)200.0));
 
-        ind2.evaluated = true;
+        indGeneVector.evaluated = true;
     }
 
-    public float calculateFitnessValue() {
+    public float calculateFitnessValue(GeneVectorIndividual indGeneVector) {
 /*        ((acepts*100)/qtdFixedConstraints) + ((acepts*100)/qtdFixedConstraints)
         (float)(((double)sum)/ind2.genome.length)
 */
@@ -338,12 +338,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *   Check if the hours to leisure foi atendida.
     */
     public void hoursToLeisure() {
-    }
-
-    /**
-    *   Fixed. Check if have subjects consecutively in one period of the day.
-    */
-    public void subjectsConsecutively() {
     }
 
     /**
