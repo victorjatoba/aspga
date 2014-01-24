@@ -109,8 +109,6 @@ public class DayPlanGene extends Gene {
      *
      * @see {@link State}
      * @see {@link SubjectWorkload}
-     *
-     *
      */
     public void insertSubjectWorkload(EvolutionState state, final int thread) {
         Random random = new Random();
@@ -394,19 +392,21 @@ public class DayPlanGene extends Gene {
      */
     @Override
     public int hashCode() {
-    	return 0;
-    }
+    	// stolen from GPIndividual.  It's a decent algorithm.
+        int hash = this.getClass().hashCode();
 
-    @Override
-    public Object clone() {
-    	DayPlanGene dayPlanGene = (DayPlanGene) (super.clone());
+		ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
+        subjectWorkloads.addAll(this.morning);
+        subjectWorkloads.addAll(this.afternoon);
+        subjectWorkloads.addAll(this.night);
 
-        return dayPlanGene;
-    }
+        hash = ( hash << 1 | hash >>> 31 );
+        for(int x = 0; x < subjectWorkloads.size(); x++) {
+        	SubjectWorkload sw = subjectWorkloads.get(x);
+            hash = ( hash << 1 | hash >>> 31 ) ^ (sw.getSubject().getId() + sw.getWorkload());
+        }
 
-    @Override
-    public String toString() {
-		return null;
+        return hash;
     }
 
 	/**
@@ -418,55 +418,32 @@ public class DayPlanGene extends Gene {
 	public String printGeneToStringForHumans() {
 		ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
 		String output;
-        output = "" + ("-----------------------\nnumber of subjectWorkloads: " + subjectWorkloads.size());
+        output = "" + (	"--------------------------\n" +
+        				"number of subjectWorkloads: " + subjectWorkloads.size() +
+        				"--------------------------\n");
 
         output += "" + ("\nmorning: ");
         for (SubjectWorkload subjectWorkload : morning) {
             float workload = ((float)subjectWorkload.getWorkload())/(float)2;
             output += "" + (subjectWorkload.getSubject().getName() + " " +
-                                workload);
+                                workload + "\n");
         }
         System.out.println("\nafternoon: ");
         for (SubjectWorkload subjectWorkload : afternoon) {
             float workload = ((float)subjectWorkload.getWorkload())/(float)2;
             output += "" + (subjectWorkload.getSubject().getName() + " " +
-                                workload);
+                                workload+ "\n");
         }
         System.out.println("\nnight: ");
         for (SubjectWorkload subjectWorkload : night) {
             float workload = ((float)subjectWorkload.getWorkload())/(float)2;
             output += "" + (subjectWorkload.getSubject().getName() + " " +
-                                workload);
+                                workload+ "\n");
         }
+        output += "--------------------------\n";
+
 		return output;
 	}
-
-	public void readGeneFromString(String string, EvolutionState state) {
-	/*	string = string.trim().substring(0); // get rid of the ">"
-		DecodeReturn dr = new DecodeReturn(string);
-		Code.decode(dr); x = dr.d; // no error checking
-		Code.decode(dr); y = dr.d;
-	*/
-	}
-
-	/**
-	* If you’re writing Individuals with the intent that they be
-	* read back in again later, you’ll probably want to override
-	* this method:
-	*/
-/*
-	public String printGeneToString() {
-		return "> " + Code.Encode(this.subject) + " " + Code.Encode(this.workload);
-	}
-
-	public void writeGene(EvolutionState state, DataOutput out) throws IOException {
-		out.writeObject(this.subject); //See ObjectOutput
-		out.writeDouble(this.workload);
-	}
-	public void readGene(EvolutionState state, DataOutput in) throws IOException {
-		x = in.readDouble(); y = in.readDouble();
-	}
-*/
 
    	/**
     * Fill the Subjects with the input file
