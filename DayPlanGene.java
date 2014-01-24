@@ -13,7 +13,7 @@ import ec.util.*;
 
 import java.lang.*;
 import java.io.DataOutput;
-import  java.util.ArrayList;
+import java.util.ArrayList;
 import java.io.File;
 import java.util.Vector;
 import java.io.FileInputStream;
@@ -23,17 +23,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Random;
 
-/*
+/**
  * DayPlanIndividual.java
  *
  * Modified: Thu Nov 26 02:29 2013
- * By: Victor Jatoba
+ * @author Victor Jatoba
+ * @version 1.0.0
  */
 
 @SuppressWarnings("serial")
 public class DayPlanGene extends Gene {
 	public static final String P_COURSEINFORMATION = "courseinformation";
 
+	//Our allele is represented by the tree period of the day below.
 	public ArrayList<SubjectWorkload> morning;
 	public ArrayList<SubjectWorkload> afternoon;
 	public ArrayList<SubjectWorkload> night;
@@ -59,14 +61,15 @@ public class DayPlanGene extends Gene {
         this.subjects = fillSubjects(courseInformationVector);
     }
 
-    public void mutate(EvolutionState state) {
-        while(!doMutate(state));
+    @Override
+    public void mutate(final EvolutionState state, final int thread) {
+        while(!doMutate(state, thread));
     }
 
     /**
     * Make mutation. Case success return true and false otherwise.
     */
-    public Boolean doMutate(EvolutionState state) {
+    public Boolean doMutate(EvolutionState state, final int thread) {
 
         Boolean mutated = Boolean.TRUE;
         Random random = new Random();
@@ -77,19 +80,19 @@ public class DayPlanGene extends Gene {
         int vectorsLength = morning.size() + afternoon.size() + night.size();
         //If I don't have any SubjectWorkload, just add one.
         if(mutationType == 0 || vectorsLength == 0) {
-            System.out.println("---0---");
-            insertSubjectWorkload(state);
+//            System.out.println("---0---");
+            insertSubjectWorkload(state, thread);
         } else if(mutationType == 1) {
-            System.out.println("---1---");
+//            System.out.println("---1---");
             mutated = removeSubjectWorkload();
         } else if(mutationType == 2) {
-            System.out.println("---2---");
+//            System.out.println("---2---");
             mutated = changeWorkload();
         } else if(mutationType == 3) {
-            System.out.println("---3---");
+//            System.out.println("---3---");
             mutated = changeSubject();
         } else {
-            System.out.println("---4---");
+//            System.out.println("---4---");
             Boolean mutated2 = changeWorkload();
             mutated = changeSubject();
             mutated = (mutated || mutated2);
@@ -98,8 +101,18 @@ public class DayPlanGene extends Gene {
         return mutated;
     }
 
-
-    public void insertSubjectWorkload(EvolutionState state) {
+    /**
+     * Add a new subjectWorkload in a random period of the day.
+     *
+     * @param state
+     * @param thread
+     *
+     * @see {@link State}
+     * @see {@link SubjectWorkload}
+     *
+     *
+     */
+    public void insertSubjectWorkload(EvolutionState state, final int thread) {
         Random random = new Random();
 
         int workload = (random.nextInt(12) + 1); //random from 1 to 12. Min and max per period of the day.
@@ -111,7 +124,7 @@ public class DayPlanGene extends Gene {
         subjectNew.setId(subjectRandom.getId());
         subjectNew.setDificulty(subjectRandom.getDificulty());
 */
-        Subject subjectRandom = subjects.get(state.random[0].nextInt(subjects.size()));
+        Subject subjectRandom = subjects.get(state.random[thread].nextInt(subjects.size()));
         Subject subjectNew = getNewSubjectInstance(subjectRandom);
         subjectWorkload.setSubject(subjectNew);
 
@@ -125,6 +138,12 @@ public class DayPlanGene extends Gene {
         }
     }
 
+    /**
+     * Remove randomly one subjectWorkload from one period of the day.
+     *
+     * @return 	<code>true</code>	if the subjectWorkload was removed successfully.
+     * 			<code>false</code> otherwise.
+     */
     public Boolean removeSubjectWorkload() {
         Random random = new Random();
 
@@ -142,6 +161,12 @@ public class DayPlanGene extends Gene {
         return Boolean.TRUE;
     }
 
+	/**
+     * Responsible for change a workload from a randomly subjectWorkload.
+     *
+     * @return 	<code>true</code>	if the workload was change successfully.
+     * 			<code>false</code> 	otherwise.
+     */
     public Boolean changeWorkload() {
         Random random = new Random();
         SubjectWorkload subjectWorkload = new SubjectWorkload();
@@ -154,27 +179,39 @@ public class DayPlanGene extends Gene {
         } else if (!this.night.isEmpty()) {
             subjectWorkload = this.night.get(random.nextInt(night.size()));
         } else {
-            System.out.println("Not mutation workload");
+//            System.out.println("Not mutation workload");
             return Boolean.FALSE;
         }
         subjectWorkload.setWorkload(getWorkloadDifferentOf(subjectWorkload.getWorkload()));
-        System.out.println(((float)subjectWorkload.getWorkload()/(float)2)+"[M]");
+//        System.out.println(((float)subjectWorkload.getWorkload()/(float)2)+"[M]");
 
         return Boolean.TRUE;
     }
 
+    /**
+     * Get a workload different of the workload passed by param.
+     *
+     * @param  workload
+     * @return <code>int</code> the workload value. From 1 to 12
+     */
     public int getWorkloadDifferentOf(int workload) {
         Random random = new Random();
         int workloadRandom = (random.nextInt(12) + 1);
 
         while(workloadRandom == workload) {
-            System.out.println(workload + " equals. Generating other..");
+//            System.out.println(workload + " equals. Generating other..");
             workloadRandom = (random.nextInt(12) + 1);
         }
 
         return workloadRandom;
     }
 
+    /**
+     * Modify a random subject in a random period of the day.
+     *
+     * @return 	<code>true</code>	if the subject was change successfully.
+     * 			<code>false</code> 	otherwise.
+     */
     public Boolean changeSubject() {
         Random random = new Random();
         //int workload = (random.nextInt(12) + 1);
@@ -189,7 +226,7 @@ public class DayPlanGene extends Gene {
         } else if (!this.night.isEmpty()) {
             subjectOld = this.night.get(random.nextInt(night.size())).getSubject();
         } else {
-            System.out.println("this gene don't have mutation");
+ //           System.out.println("this gene don't have mutation");
             return Boolean.FALSE ;
         }
 
@@ -200,11 +237,19 @@ public class DayPlanGene extends Gene {
 
 //        subjectOld = getSubjectDifferentOf(subjectOld);
         String s = subjectOld.getName(); s += "[M]"; subjectOld.setName(s);
-        System.out.println(""+subjectOld.getName());
+//        System.out.println(""+subjectOld.getName());
 
         return Boolean.TRUE;
     }
 
+    /**
+     * Get a Subject different of the subject passed by param.
+     *
+     * @param  workload
+     * @return <code>int</code> the workload value. From 1 to 12
+     *
+     * @see {@link Subject}
+     */
     public Subject getSubjectDifferentOf(Subject subject) {
         Random random = new Random();
         Subject subjectNew = subjects.get(random.nextInt(subjects.size()));
@@ -219,6 +264,14 @@ public class DayPlanGene extends Gene {
         return getNewSubjectInstance(subjectNew);
     }
 
+    /**
+     * Get a new instance from a subject passed by param.
+     *
+     * @param  subject
+     * @return <code>Subject</code> the new instance from subject.
+     *
+     * @see {@link Subject}
+     */
     public Subject getNewSubjectInstance(Subject subject) {
         Subject subjectRandom = new Subject();
         subjectRandom.setName(new String(subject.getName()));
@@ -227,9 +280,32 @@ public class DayPlanGene extends Gene {
         return subjectRandom;
     }
 
-    /*
-     * used to initialize the Individual, in turn calls this method on your Gene subclass.
+    /**
+     * Get a new instance from a arbitrary subjectWorkload.
+     *
+     * @param state
+     * @param thread
+     *
+     * @return <code>SubjectWorkload</code> the new instance from subjectWorkload.
+     *
+     * @see {@link SubjectWorkload}
+     * @see {@link ec.EvolutionState}
      */
+    public SubjectWorkload getNewSubjectWorkloadInstance(EvolutionState state, int thread) {
+        Random random = new Random();
+        Subject subject = subjects.get(state.random[thread].nextInt(subjects.size()));
+
+        Subject subjectNew = getNewSubjectInstance(subject);
+
+        int workload = (random.nextInt(12) + 1); //random from 1 to 12
+
+        SubjectWorkload subjectWorkload = new SubjectWorkload();
+        subjectWorkload.setSubject(subjectNew);
+        subjectWorkload.setWorkload(workload);
+        return subjectWorkload;
+    }
+
+    @Override
     public void reset(EvolutionState state, int thread) {
         Random random = new Random();
         //I can study max 32 subjects/day. But I need breaks too!
@@ -251,23 +327,7 @@ public class DayPlanGene extends Gene {
         }
     }
 
-    public SubjectWorkload getNewSubjectWorkloadInstance(EvolutionState state, int thread) {
-        Random random = new Random();
-        Subject subject = subjects.get(state.random[thread].nextInt(subjects.size()));
-
-        Subject subjectNew = getNewSubjectInstance(subject);
-
-        int workload = (random.nextInt(12) + 1); //random from 1 to 12
-
-        SubjectWorkload subjectWorkload = new SubjectWorkload();
-        subjectWorkload.setSubject(subjectNew);
-        subjectWorkload.setWorkload(workload);
-        return subjectWorkload;
-    }
-
-    /*
-     * Verify if one gene is equals to other.
-     */
+    @Override
     public boolean equals(Object other) {
         Boolean isEquals = Boolean.TRUE;
 
@@ -339,7 +399,9 @@ public class DayPlanGene extends Gene {
 
     @Override
     public Object clone() {
-    	return null;
+    	DayPlanGene dayPlanGene = (DayPlanGene) (super.clone());
+
+        return dayPlanGene;
     }
 
     @Override
@@ -352,6 +414,7 @@ public class DayPlanGene extends Gene {
 	* least provide a way to describe the gene when it’s printed to a log.
 	* The easiest way to do this is to override this method.
 	*/
+	@Override
 	public String printGeneToStringForHumans() {
 		ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
 		String output;
@@ -405,8 +468,13 @@ public class DayPlanGene extends Gene {
 	}
 */
 
-	/**
-    *   Fill the Subjects with the input file
+   	/**
+    * Fill the Subjects with the input file
+    *
+    * @param  subjectsIn
+    * @return <code>ArrayList<Subject></code> all input subjects.
+    *
+    * @see {@link java.util.ArrayList}
     */
     public ArrayList<Subject> fillSubjects(Vector<String> subjectsIn) {
         ArrayList<Subject> subjects = new ArrayList<Subject>();
@@ -432,8 +500,13 @@ public class DayPlanGene extends Gene {
         return subjects;
     }
 
-    /**
-    *   Convert a file to a vector of string.
+   	/**
+    * Convert a file to a vector of string.
+    *
+    * @param  file
+    * @return <code>Vector<String></code> the file converted.
+    *
+    * @see {@link java.util.Vector}
     */
     public Vector<String> convertFileToVectorString(File file) {
 
@@ -478,8 +551,10 @@ public class DayPlanGene extends Gene {
         return lines;
     }
 
-	/**
+   /**
     * Print all the classes filled
+    *
+    * @param dayPlanGene
     */
     public void printDayPlan(DayPlanGene dayPlanGene) {
         ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
