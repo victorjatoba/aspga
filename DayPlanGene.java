@@ -33,12 +33,12 @@ import java.util.Random;
 
 @SuppressWarnings("serial")
 public class DayPlanGene extends Gene {
-	public static final String P_COURSEINFORMATION = "courseinformation";
+	public static final String P_COURSEINFORMATION = "courseInformation";
 
 	//Our allele is represented by the tree period of the day below.
-	public ArrayList<SubjectWorkload> morning;
-	public ArrayList<SubjectWorkload> afternoon;
-	public ArrayList<SubjectWorkload> night;
+	ArrayList<SubjectWorkload> morning;
+	ArrayList<SubjectWorkload> afternoon;
+	ArrayList<SubjectWorkload> night;
 
 	ArrayList<Subject> subjects;
     EvolutionState state;
@@ -54,11 +54,35 @@ public class DayPlanGene extends Gene {
 
         if (courseInformationInput == null) {
             state.output.error("CourseInformation File doesn't exist", base.push(P_COURSEINFORMATION));
+        } else {
+        	state.output.message(""+courseInformationInput);
         }
 
         Vector<String> courseInformationVector = convertFileToVectorString(courseInformationInput);
 
+        //printInputLines(courseInformationVector, "CourseInformation");
+
         this.subjects = fillSubjects(courseInformationVector);
+
+        this.morning = new ArrayList<SubjectWorkload>();
+        this.afternoon = new ArrayList<SubjectWorkload>();
+        this.night = new ArrayList<SubjectWorkload>();
+    }
+
+    /**
+    *   Print in the console the lines of the input.
+    */
+    public void printInputLines(Vector<String> lines, String type) {
+
+        System.out.println("\n------------"+ type +"---------------");
+
+        for (String lineIt: lines) {
+            System.out.println(lineIt);
+            System.out.println();
+        }
+
+        System.out.println("----------------Done!-------------------");
+
     }
 
     @Override
@@ -471,9 +495,13 @@ public class DayPlanGene extends Gene {
             output += "" + (subjectWorkload.getSubject().getName() + " " +
                                 workload+ "\n");
         }
-        output += "--------------------------\n";
 
         return output;
+    }
+
+    @Override
+    public String toString() {
+    	return printGeneToStringForHumans();
     }
 
    	/**
@@ -520,7 +548,7 @@ public class DayPlanGene extends Gene {
 
         FileInputStream inputStream = null;
         BufferedReader br           = null;
-        Vector<String> lines        = null;
+        Vector<String> lines 		= new Vector<String>();
 
         try {
 
@@ -531,7 +559,7 @@ public class DayPlanGene extends Gene {
             //StringBuilder sb = new StringBuilder();
 
             String line;
-            lines = new Vector<String>();
+
             while ((line = br.readLine()) != null) {
                 //sb.append(line);
                 lines.add(line);
@@ -592,6 +620,18 @@ public class DayPlanGene extends Gene {
         }
 
     }
+
+	public ArrayList<SubjectWorkload> getMorning() {
+		return this.morning;
+	}
+
+	public ArrayList<SubjectWorkload> getAfternoon() {
+		return this.afternoon;
+	}
+
+	public ArrayList<SubjectWorkload> getNight() {
+		return this.night;
+	}
 
 }
 

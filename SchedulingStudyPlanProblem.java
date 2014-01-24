@@ -47,10 +47,18 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 {
     private static final long serialVersionUID = 1;
 
-    public static final String P_COURSEINFORMATION = "courseinformation";
-    public static final String P_INTELECTUALAVAILABLE = "intelectualavailable";
-    public static final String P_DAYPERIODAVAILABLE = "dayperiodavailable";
-    public static final String P_STUDENTINFORMATION = "studentinformation";
+    public static final String P_COURSEINFORMATION = "courseInformation";
+    public static final String P_INTELECTUALAVAILABLE = "intelectualAvailable";
+    public static final String P_DAYPERIODAVAILABLE = "dayperiodAvailable";
+    public static final String P_STUDENTINFORMATION = "studentInformation";
+
+    public static final char BIG =      'B';
+    public static final char SMAL =     'S';
+    public static final char NOTHING =  'N';
+
+    public static final char GOOD =     'G';
+    public static final char MEDIAN =   'M';
+    public static final char BAD =      'B';
 
     public EvolutionState state;
     public Parameter base;
@@ -59,6 +67,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     Student student;
     PeriodAvailable dayPeriodAvailable;
     PeriodAvailable intelectualAvailable;
+
+    GeneVectorIndividual individual;
 
     public void setup (  final EvolutionState state, final Parameter base) {
         this.state = state;
@@ -90,31 +100,113 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     }
 
     /**
-    *   Fill the PeriodAvailable information with the input file
+    *   Implement the ftness function
     */
-    public PeriodAvailable fillPeriodAvailable(Vector<String> periodAvailables) {
-        PeriodAvailable periodAvailable = new PeriodAvailable();
-        Period[] periods = getPeriodsStandarized(periodAvailables);
+    public void evaluate(   final EvolutionState state,
+                            final Individual ind,
+                            final int subpopulation,
+                            final int threadnum)
+    {
+        if (ind.evaluated) return;
 
-        periodAvailable.setMonday(periods[0]);
-        periodAvailable.setTuesday(periods[1]);
-        periodAvailable.setWednesday(periods[2]);
-        periodAvailable.setThursday(periods[3]);
-        periodAvailable.setFriday(periods[4]);
-        periodAvailable.setSaturday(periods[5]);
-        periodAvailable.setSunday(periods[6]);
+        if (!(ind instanceof GeneVectorIndividual)) {
+            state.output.fatal("Whoa!  It's not a GeneVectorIndividual!!!",null);
+        }
 
-        return periodAvailable;
+        int sum=0;
+        individual = (GeneVectorIndividual)ind;
+
+        if (!(individual.fitness instanceof SimpleFitness)) {
+            state.output.fatal("Whoa!  It's not a SimpleFitness!!!",null);
+        }
+
+        float fitnessValue = calculateFitnessValue();
+
+        ((SimpleFitness)individual.fitness).setFitness(state,
+            /// ...the fitness...
+            fitnessValue,
+            ///... is the individual ideal?  Indicate here...
+            (fitnessValue == 200.0f));
+
+        individual.evaluated = true;
+    }
+
+    public float calculateFitnessValue() {
+
+/*        ((acepts*100)/qtdFixedConstraints) + ((acepts*100)/qtdFixedConstraints)
+        (float)(((double)sum)/ind2.genome.length)
+*/
+        float fitness = subjectInInappropriatePeriod() ? 200.0f : 0.0f;
+        return fitness;
     }
 
     /**
-    *   Change a vector of the string in a array of the Periods
+    *   Hard Subjects should be alocated in the period of the day that the user
+    *   have more intelectual facility for to learn.
     */
-    public Period[] getPeriodsStandarized(Vector<String> periodAvailables) {
-        Period[] periods = new Period[7];
+    public void hardSubjectInEasyPeriod() {
+    }
+
+    /**
+    *   Check if the subjects are studies in one time only.
+    */
+    public void notCostAllTimeInTheSameSubject() {
+    }
+
+    /**
+    *   Check if the study plan have grow-up learn.
+    */
+    public void toStudyGradually() {
+    }
+
+   /**
+    * Check if have subjects in the period of the day who the
+    * user don't have disponibility.
+    *
+    * Classification: Fixed Constraint.
+    *
+    * @return
+    */
+    public Boolean subjectInInappropriatePeriod() {
+        long individualLength = individual.size();
+        int cycleIt = 0;
+        ArrayList<Period> studyCycle = this.dayPeriodAvailable.getStudyCycle();
+        int studyCycleSize = studyCycle.size();
+        //dayPeriodAvailable;
+
+        for (int i = 0; i < individualLength; i++) {
+            DayPlanGene gene = (DayPlanGene) individual.genome[i];
+
+            if (studyCycle.get(cycleIt).getMorning() == NOTHING && gene.getMorning().size() > 0) {
+                return Boolean.FALSE;
+            } else if (studyCycle.get(cycleIt).getAfternoon() == NOTHING && gene.getAfternoon().size() > 0) {
+                return Boolean.FALSE;
+            } else if (studyCycle.get(cycleIt).getNight() == NOTHING && gene.getNight().size() > 0) {
+                return Boolean.FALSE;
+            }
+
+            cycleIt++;
+            if(cycleIt == studyCycleSize){
+                cycleIt = 0;
+            }
+        }
+
+        return Boolean.TRUE;
+    }
+
+    /**
+    *   Check if the hours to leisure foi atendida.
+    */
+    public void hoursToLeisure() {
+    }
+
+    /**
+    *   Fill the PeriodAvailable information with the input file
+    */
+    public PeriodAvailable fillPeriodAvailable(Vector<String> periodAvailables) {
+        ArrayList<Period> studyCycle = new ArrayList<Period>();
 
         if (periodAvailables != null) {
-            int i = 0;
             for (String line: periodAvailables) {
                 String[] periodAvailablesInfo = line.split(" ");
 
@@ -123,14 +215,16 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
                 period.setAfternoon(periodAvailablesInfo[1].charAt(0));
                 period.setNight(periodAvailablesInfo[2].charAt(0));
 
-                periods[i++] = period;
+                studyCycle.add(period);
             }
-
         } else {
             state.output.error("SSPP| Error: The periodAvailables information are null!");
         }
 
-        return periods;
+        PeriodAvailable periodAvailable = new PeriodAvailable();
+        periodAvailable.setStudyCycle(studyCycle);
+
+        return periodAvailable;
     }
 
     /**
@@ -258,86 +352,15 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     */
     public void printInputLines(Vector<String> lines, String type) {
 
-        System.out.println("\n----------------"+ type +"--------------------!");
+        System.out.println("\n------------"+ type +"---------------");
 
         for (String lineIt: lines) {
-            state.output.message("courseInformationInput = " + lineIt);
+            state.output.message(lineIt);
             System.out.println();
         }
 
-        System.out.println("\n----------------Done!-------------------");
+        System.out.println("----------------Done!-------------------");
 
-    }
-
-    /**
-    *   Implement the ftness function
-    */
-    public void evaluate(   final EvolutionState state,
-                            final Individual ind,
-                            final int subpopulation,
-                            final int threadnum)
-    {
-        if (ind.evaluated) return;
-
-        if (!(ind instanceof GeneVectorIndividual)) {
-            state.output.fatal("Whoa!  It's not a GeneVectorIndividual!!!",null);
-        }
-
-        int sum=0;
-        GeneVectorIndividual indGeneVector = (GeneVectorIndividual)ind;
-
-        if (!(indGeneVector.fitness instanceof SimpleFitness)) {
-            state.output.fatal("Whoa!  It's not a SimpleFitness!!!",null);
-        }
-
-        float fitnessValue = calculateFitnessValue(indGeneVector);
-
-        ((SimpleFitness)indGeneVector.fitness).setFitness(state,
-            /// ...the fitness...
-            fitnessValue,
-            ///... is the individual ideal?  Indicate here...
-            (fitnessValue == (float)200.0));
-
-        indGeneVector.evaluated = true;
-    }
-
-    public float calculateFitnessValue(GeneVectorIndividual indGeneVector) {
-/*        ((acepts*100)/qtdFixedConstraints) + ((acepts*100)/qtdFixedConstraints)
-        (float)(((double)sum)/ind2.genome.length)
-*/
-        return 0.0f;
-    }
-
-    /**
-    *   Hard Subjects should be alocated in the period of the day that the user
-    *   have more intelectual facility for to learn.
-    */
-    public void hardSubjectInEasyPeriod() {
-    }
-
-    /**
-    *   Check if the subjects are studies in one time only.
-    */
-    public void notCostAllTimeInTheSameSubject() {
-    }
-
-    /**
-    *   Check if the study plan have grow-up learn.
-    */
-    public void toStudyGradually() {
-    }
-
-    /**
-    *   Check if have subjects in the period of the day if the
-    *   user don't have disponibility.
-    */
-    public void SubjectInInappropriatePeriod() {
-    }
-
-    /**
-    *   Check if the hours to leisure foi atendida.
-    */
-    public void hoursToLeisure() {
     }
 
     /**
@@ -350,24 +373,24 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             System.out.println("Dificulty: " + subject.getDificulty());
         }
 
-        System.out.println("-----------------------\nStudent:");
+        System.out.println("\n-------------Student----------");
         System.out.println("Name: " + this.student.getName());
         System.out.println("hoursToLeisure: " + this.student.getHoursToLeisure());
 
-        System.out.println("-----------------------\nDayPeriodAvailable: ");
-        Period period = new Period();
-        period = this.dayPeriodAvailable.getMonday();
-        System.out.println("Monday: " +     period.getMorning() + " " +
-                                            period.getAfternoon() + " " +
-                                            period.getNight());
-        period = this.dayPeriodAvailable.getTuesday();
-        System.out.println("Tuesday: " +    period.getMorning() + " " +
-                                            period.getAfternoon() + " " +
-                                            period.getNight());
-        period = this.dayPeriodAvailable.getWednesday();
-        System.out.println("Wednesday: " +     period.getMorning() + " " +
-                                            period.getAfternoon() + " " +
-                                            period.getNight());
+        System.out.println("\n-------------DayPeriodAvailable----");
+        System.out.println("[WeekDay]----[Disponibility]");
+        ArrayList<Period> studyCycle = dayPeriodAvailable.getStudyCycle();
 
+        int cycleIt = 0;
+        int studyCycleSize = studyCycle.size();
+        for (Period period: studyCycle) {
+
+            System.out.println( "" + cycleIt+1 + " " +
+                                period.getMorning() + " " +
+                                period.getAfternoon() + " " +
+                                period.getNight());
+
+            cycleIt = (cycleIt == studyCycleSize-1) ? 0 : ++cycleIt;
+        }
     }
 }
