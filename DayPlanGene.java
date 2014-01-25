@@ -42,6 +42,7 @@ public class DayPlanGene extends Gene {
 
 	ArrayList<Subject> subjects;
     EvolutionState state;
+    int thread;
     Parameter base;
 
     @Override
@@ -69,305 +70,51 @@ public class DayPlanGene extends Gene {
         this.night = new ArrayList<SubjectWorkload>();
     }
 
-    /**
-    *   Print in the console the lines of the input.
-    */
-    public void printInputLines(Vector<String> lines, String type) {
-
-        System.out.println("\n------------"+ type +"---------------");
-
-        for (String lineIt: lines) {
-            System.out.println(lineIt);
-            System.out.println();
-        }
-
-        System.out.println("----------------Done!-------------------");
-
-    }
-
-    @Override
-    public void mutate(final EvolutionState state, final int thread) {
-        while(!doMutate(state, thread));
-    }
-
-    /**
-    * Make mutation. Case success return true and false otherwise.
-    */
-    public Boolean doMutate(EvolutionState state, final int thread) {
-
-        Boolean mutated = Boolean.TRUE;
-        Random random = new Random();
-
-        int mutationType = random.nextInt(5);
-        mutationType = 4;
-
-        int vectorsLength = morning.size() + afternoon.size() + night.size();
-        //If I don't have any SubjectWorkload, just add one.
-        if(mutationType == 0 || vectorsLength == 0) {
-//            System.out.println("---0---");
-            mutated = insertSubjectWorkload(state, thread);
-        } else if(mutationType == 1) {
-//            System.out.println("---1---");
-            mutated = removeSubjectWorkload();
-        } else if(mutationType == 2) {
-//            System.out.println("---2---");
-            mutated = changeWorkload();
-        } else if(mutationType == 3) {
-//            System.out.println("---3---");
-            mutated = changeSubject();
-        } else {
-//            System.out.println("---4---");
-            Boolean mutated2 = changeWorkload();
-            mutated = changeSubject();
-            mutated = (mutated || mutated2);
-        }
-
-        return mutated;
-    }
-
-    /**
-     * Add a new subjectWorkload in a random period of the day.
-     *
-     * @param state
-     * @param thread
-     *
-	 * @return 	<code>true</code>	if the subjectWorkload was added successfully.
-     * 			<code>false</code>  otherwise.
-     *
-     * @see {@link State}
-     * @see {@link SubjectWorkload}
-     */
-    public Boolean insertSubjectWorkload(EvolutionState state, final int thread) {
-        Random random = new Random();
-
-        int workload = (random.nextInt(12) + 1); //random from 1 to 12. Min and max per period of the day.
-        SubjectWorkload subjectWorkload = new SubjectWorkload();
-        subjectWorkload.setWorkload(workload);
-
-/*        Subject subjectNew = new Subject();
-        subjectNew.setName(new String(subjectRandom.getName()));
-        subjectNew.setId(subjectRandom.getId());
-        subjectNew.setDificulty(subjectRandom.getDificulty());
-*/
-        Subject subjectRandom = subjects.get(state.random[0].nextInt(subjects.size()));
-        Subject subjectNew = getNewSubjectInstance(subjectRandom);
-        subjectWorkload.setSubject(subjectNew);
-
-        int periodOfTheDay = random.nextInt(3); //random from 0 to 2
-        if(periodOfTheDay == 0 && !contens(morning, subjectWorkload)) {
-            this.morning.add(subjectWorkload);
-        } else if (periodOfTheDay == 1 && !contens(afternoon, subjectWorkload)) {
-            this.afternoon.add(subjectWorkload);
-        } else if(!contens(night, subjectWorkload)) {
-            this.night.add(subjectWorkload);
-        } else {
-            return Boolean.FALSE;
-        }
-
-        return Boolean.TRUE;
-    }
-
-    /**
-     * Remove randomly one subjectWorkload from one period of the day.
-     *
-     * @return 	<code>true</code>	if the subjectWorkload was removed successfully.
-     * 			<code>false</code> otherwise.
-     */
-    public Boolean removeSubjectWorkload() {
-        Random random = new Random();
-
-        int periodOfTheDay = random.nextInt(3); //random from 0 to 2
-        if(periodOfTheDay == 0 && !this.morning.isEmpty()) {
-            this.morning.remove(random.nextInt(morning.size()));
-        } else if (periodOfTheDay == 1 && !this.afternoon.isEmpty()) {
-            this.afternoon.remove(random.nextInt(afternoon.size()));
-        } else if (!this.night.isEmpty()) {
-            this.night.remove(random.nextInt(night.size()));
-        } else {
-            return Boolean.FALSE;
-        }
-
-        return Boolean.TRUE;
-    }
-
-	/**
-     * Responsible for change a workload from a randomly subjectWorkload.
-     *
-     * @return 	<code>true</code>	if the workload was change successfully.
-     * 			<code>false</code> 	otherwise.
-     */
-    public Boolean changeWorkload() {
-        Random random = new Random();
-        SubjectWorkload subjectWorkload = new SubjectWorkload();
-
-        int periodOfTheDay = random.nextInt(3); //random from 0 to 2
-        if(periodOfTheDay == 0 && !this.morning.isEmpty()) {
-            subjectWorkload = this.morning.get(random.nextInt(morning.size()));
-        } else if (periodOfTheDay == 1 && !this.afternoon.isEmpty()) {
-            subjectWorkload = this.afternoon.get(random.nextInt(afternoon.size()));
-        } else if (!this.night.isEmpty()) {
-            subjectWorkload = this.night.get(random.nextInt(night.size()));
-        } else {
-//            System.out.println("Not mutation workload");
-            return Boolean.FALSE;
-        }
-        subjectWorkload.setWorkload(getWorkloadDifferentOf(subjectWorkload.getWorkload()));
-//        System.out.println(((float)subjectWorkload.getWorkload()/(float)2)+"[M]");
-
-        return Boolean.TRUE;
-    }
-
-    /**
-     * Get a workload different of the workload passed by param.
-     *
-     * @param  workload
-     * @return <code>int</code> the workload value. From 1 to 12
-     */
-    public int getWorkloadDifferentOf(int workload) {
-        Random random = new Random();
-        int workloadRandom = (random.nextInt(12) + 1);
-
-        while(workloadRandom == workload) {
-//            System.out.println(workload + " equals. Generating other..");
-            workloadRandom = (random.nextInt(12) + 1);
-        }
-
-        return workloadRandom;
-    }
-
-    /**
-     * Modify a random subject in a random period of the day.
-     *
-     * @return 	<code>true</code>	if the subject was change successfully.
-     * 			<code>false</code> 	otherwise.
-     */
-    public Boolean changeSubject() {
-        Random random = new Random();
-        //int workload = (random.nextInt(12) + 1);
-
-        Subject subjectOld;
-
-        int periodOfTheDay = random.nextInt(3); //random from 0 to 2
-        if(periodOfTheDay == 0 && !this.morning.isEmpty()) {
-            subjectOld = this.morning.get(random.nextInt(morning.size())).getSubject();
-        } else if (periodOfTheDay == 1 && !this.afternoon.isEmpty()) {
-            subjectOld = this.afternoon.get(random.nextInt(afternoon.size())).getSubject();
-        } else if (!this.night.isEmpty()) {
-            subjectOld = this.night.get(random.nextInt(night.size())).getSubject();
-        } else {
- //           System.out.println("this gene don't have mutation");
-            return Boolean.FALSE ;
-        }
-
-        Subject subjectRandom = getSubjectDifferentOf(subjectOld);
-        subjectOld.setName(new String(subjectRandom.getName()));
-        subjectOld.setId(subjectRandom.getId());
-        subjectOld.setDificulty(subjectRandom.getDificulty());
-
-//        subjectOld = getSubjectDifferentOf(subjectOld);
-        String s = subjectOld.getName(); s += "[M]"; subjectOld.setName(s);
-//        System.out.println(""+subjectOld.getName());
-
-        return Boolean.TRUE;
-    }
-
-    /**
-     * Get a Subject different of the subject passed by param.
-     *
-     * @param  workload
-     * @return <code>int</code> the workload value. From 1 to 12
-     *
-     * @see {@link Subject}
-     */
-    public Subject getSubjectDifferentOf(Subject subject) {
-        Random random = new Random();
-        Subject subjectNew = subjects.get(random.nextInt(subjects.size()));
-        int idRandom = subjectNew.getId();
-        int idOld = subject.getId();
-
-        while(idRandom == idOld) {
-            subjectNew = subjects.get(random.nextInt(subjects.size()));
-            idRandom = subjectNew.getId();
-        }
-
-        return getNewSubjectInstance(subjectNew);
-    }
-
-    /**
-     * Get a new instance from a subject passed by param.
-     *
-     * @param  subject
-     * @return <code>Subject</code> the new instance from subject.
-     *
-     * @see {@link Subject}
-     */
-    public Subject getNewSubjectInstance(Subject subject) {
-        Subject subjectRandom = new Subject();
-        subjectRandom.setName(new String(subject.getName()));
-        subjectRandom.setId(subject.getId());
-        subjectRandom.setDificulty(subject.getDificulty());
-        return subjectRandom;
-    }
-
-    /**
-     * Get a new instance from a arbitrary subjectWorkload.
-     *
-     * @param state
-     * @param thread
-     *
-     * @return <code>SubjectWorkload</code> the new instance from subjectWorkload.
-     *
-     * @see {@link SubjectWorkload}
-     * @see {@link ec.EvolutionState}
-     */
-    public SubjectWorkload getNewSubjectWorkloadInstance(EvolutionState state, int thread) {
-        Random random = new Random();
-        Subject subject = subjects.get(state.random[thread].nextInt(subjects.size()));
-
-        Subject subjectNew = getNewSubjectInstance(subject);
-
-        int workload = (random.nextInt(12) + 1); //random from 1 to 12
-
-        SubjectWorkload subjectWorkload = new SubjectWorkload();
-        subjectWorkload.setSubject(subjectNew);
-        subjectWorkload.setWorkload(workload);
-        return subjectWorkload;
-    }
-
     @Override
     public void reset(EvolutionState state, int thread) {
-        Random random = new Random();
-        //I can study max 32 subjects/day. But I need breaks too!
-        //int maxSubjectsQuantity = random.nextInt(32);
-        int maxSubjectsQuantity = random.nextInt(32);
+
+        this.morning = new ArrayList<SubjectWorkload>();
+        this.afternoon = new ArrayList<SubjectWorkload>();
+        this.night = new ArrayList<SubjectWorkload>();
+
+        //I can study max 32 subjects/day. But I need breaks too! So reduce for 30
+        int maxSubjectsQuantity = state.random[thread].nextInt(30);
+        //System.out.println("maxSubjectsQuantity: " + maxSubjectsQuantity);
 
         for(int i = 0; i < maxSubjectsQuantity; i++) {
 
             SubjectWorkload subjectWorkload = getNewSubjectWorkloadInstance(state, thread);
 
-            int periodOfTheDay = random.nextInt(3); //random from 0 to 2
+            int periodOfTheDay = state.random[thread].nextInt(3); //random from 0 to 2
             if(periodOfTheDay == 0 && !contens(morning, subjectWorkload)) {
-                this.morning.add(subjectWorkload);
+                morning.add(subjectWorkload);
             } else if (periodOfTheDay == 1 && !contens(afternoon, subjectWorkload)) {
-                this.afternoon.add(subjectWorkload);
+                afternoon.add(subjectWorkload);
             } else if(!contens(night, subjectWorkload)) {
-                this.night.add(subjectWorkload);
+                night.add(subjectWorkload);
             }
         }
+
+        ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
+        subjectWorkloads.addAll(morning);
+        subjectWorkloads.addAll(afternoon);
+        subjectWorkloads.addAll(night);
+
+        //System.out.println(printGeneToStringForHumans());
     }
 
     /**
-     * Verify if the array of subjectWorkloads contens the subjectWorkload passed by param.
+     * Verify if the array of subjectWorkloads contens the subject passed by param.
      *
-     * @param  periodOfTheDay 	period of the day that to be searched.
-     * @param  sw 				the subjectWorkload to be found.
+     * @param  periodOfTheDay   period of the day that to be searched.
+     * @param  sw               the subjectWorkload to be found.
      *
-     * @return 	<code>true</code>	if found.
-     * 			<code>false</code> 	otherwise.
+     * @return  <code>true</code>   if found.
+     *          <code>false</code>  otherwise.
      */
     public Boolean contens(ArrayList<SubjectWorkload> periodOfTheDay, SubjectWorkload sw) {
 
-    	SubjectWorkload swToBeFind = sw;
+        SubjectWorkload swToBeFind = sw;
         for (SubjectWorkload swActual : periodOfTheDay) {
             if(swActual.getSubject().getId() == swToBeFind.getSubject().getId()){
                 return Boolean.TRUE;
@@ -438,6 +185,250 @@ public class DayPlanGene extends Gene {
         return isEquals;
     }
 
+    @Override
+    public void mutate(final EvolutionState state, final int thread) {
+        while(!doMutate(state, thread));
+    }
+
+    /**
+    * Make mutation. Case success return true and false otherwise.
+    */
+    public Boolean doMutate(EvolutionState state, final int thread) {
+
+        Boolean mutated = Boolean.TRUE;
+
+        int mutationType = state.random[thread].nextInt(5);
+        //mutationType = 4;
+
+        int vectorsLength = morning.size() + afternoon.size() + night.size();
+        //If I don't have any SubjectWorkload, just add one.
+        if(mutationType == 0 || vectorsLength == 0) {
+//            System.out.println("---0---");
+            mutated = insertSubjectWorkload(state, thread);
+        } else if(mutationType == 1) {
+//            System.out.println("---1---");
+            mutated = removeSubjectWorkload(state, thread);
+        } else if(mutationType == 2) {
+//            System.out.println("---2---");
+            mutated = changeWorkload(state, thread);
+        } else if(mutationType == 3) {
+//            System.out.println("---3---");
+            mutated = changeSubject(state, thread);
+        } else {
+//            System.out.println("---4---");
+            Boolean mutated2 = changeWorkload(state, thread);
+            mutated = changeSubject(state, thread);
+            mutated = (mutated || mutated2);
+        }
+
+        return mutated;
+    }
+
+    /**
+     * Add a new subjectWorkload in a random period of the day.
+     *
+     * @param state
+     * @param thread
+     *
+	 * @return 	<code>true</code>	if the subjectWorkload was added successfully.
+     * 			<code>false</code>  otherwise.
+     *
+     * @see {@link State}
+     * @see {@link SubjectWorkload}
+     */
+    public Boolean insertSubjectWorkload(EvolutionState state, final int thread) {
+
+        int workload = (state.random[thread].nextInt(12) + 1); //random from 1 to 12. Min and max per period of the day.
+        SubjectWorkload subjectWorkload = new SubjectWorkload();
+        subjectWorkload.setWorkload(workload);
+
+/*        Subject subjectNew = new Subject();
+        subjectNew.setName(new String(subjectRandom.getName()));
+        subjectNew.setId(subjectRandom.getId());
+        subjectNew.setDificulty(subjectRandom.getDificulty());
+*/
+        Subject subjectRandom = subjects.get(state.random[thread].nextInt(subjects.size()));
+        Subject subjectNew = getNewSubjectInstance(subjectRandom);
+        subjectWorkload.setSubject(subjectNew);
+
+        int periodOfTheDay = state.random[thread].nextInt(3); //random from 0 to 2
+        if(periodOfTheDay == 0 && !contens(morning, subjectWorkload)) {
+            this.morning.add(subjectWorkload);
+        } else if (periodOfTheDay == 1 && !contens(afternoon, subjectWorkload)) {
+            this.afternoon.add(subjectWorkload);
+        } else if(!contens(night, subjectWorkload)) {
+            this.night.add(subjectWorkload);
+        } else {
+            return Boolean.FALSE;
+        }
+
+        return Boolean.TRUE;
+    }
+
+    /**
+     * Remove randomly one subjectWorkload from one period of the day.
+     *
+     * @return 	<code>true</code>	if the subjectWorkload was removed successfully.
+     * 			<code>false</code> otherwise.
+     */
+    public Boolean removeSubjectWorkload(EvolutionState state, int thread) {
+
+        int periodOfTheDay = state.random[thread].nextInt(3); //random from 0 to 2
+        if(periodOfTheDay == 0 && !this.morning.isEmpty()) {
+            this.morning.remove(state.random[thread].nextInt(morning.size()));
+        } else if (periodOfTheDay == 1 && !this.afternoon.isEmpty()) {
+            this.afternoon.remove(state.random[thread].nextInt(afternoon.size()));
+        } else if (!this.night.isEmpty()) {
+            this.night.remove(state.random[thread].nextInt(night.size()));
+        } else {
+            return Boolean.FALSE;
+        }
+
+        return Boolean.TRUE;
+    }
+
+	/**
+     * Responsible for change a workload from a randomly subjectWorkload.
+     *
+     * @return 	<code>true</code>	if the workload was change successfully.
+     * 			<code>false</code> 	otherwise.
+     */
+    public Boolean changeWorkload(EvolutionState state, int thread) {
+        SubjectWorkload subjectWorkload = new SubjectWorkload();
+
+        int periodOfTheDay = state.random[thread].nextInt(3); //random from 0 to 2
+        if(periodOfTheDay == 0 && !this.morning.isEmpty()) {
+            subjectWorkload = this.morning.get(state.random[thread].nextInt(morning.size()));
+        } else if (periodOfTheDay == 1 && !this.afternoon.isEmpty()) {
+            subjectWorkload = this.afternoon.get(state.random[thread].nextInt(afternoon.size()));
+        } else if (!this.night.isEmpty()) {
+            subjectWorkload = this.night.get(state.random[thread].nextInt(night.size()));
+        } else {
+//            System.out.println("Not mutation workload");
+            return Boolean.FALSE;
+        }
+        subjectWorkload.setWorkload(getWorkloadDifferentOf(subjectWorkload.getWorkload(), state, thread));
+//        System.out.println(((float)subjectWorkload.getWorkload()/(float)2)+"[M]");
+
+        return Boolean.TRUE;
+    }
+
+    /**
+     * Get a workload different of the workload passed by param.
+     *
+     * @param  workload
+     * @return <code>int</code> the workload value. From 1 to 12
+     */
+    public int getWorkloadDifferentOf(int workload, EvolutionState state, int thread) {
+        int workloadRandom = (state.random[thread].nextInt(12) + 1);
+
+        while(workloadRandom == workload) {
+//            System.out.println(workload + " equals. Generating other..");
+            workloadRandom = (state.random[thread].nextInt(12) + 1);
+        }
+
+        return workloadRandom;
+    }
+
+    /**
+     * Modify a random subject in a random period of the day.
+     *
+     * @return 	<code>true</code>	if the subject was change successfully.
+     * 			<code>false</code> 	otherwise.
+     */
+    public Boolean changeSubject(EvolutionState state, int thread) {
+        //int workload = (state.random[thread].nextInt(12) + 1);
+
+        Subject subjectOld;
+
+        int periodOfTheDay = state.random[thread].nextInt(3); //random from 0 to 2
+        if(periodOfTheDay == 0 && !this.morning.isEmpty()) {
+            subjectOld = this.morning.get(state.random[thread].nextInt(morning.size())).getSubject();
+        } else if (periodOfTheDay == 1 && !this.afternoon.isEmpty()) {
+            subjectOld = this.afternoon.get(state.random[thread].nextInt(afternoon.size())).getSubject();
+        } else if (!this.night.isEmpty()) {
+            subjectOld = this.night.get(state.random[thread].nextInt(night.size())).getSubject();
+        } else {
+ //           System.out.println("this gene don't have mutation");
+            return Boolean.FALSE ;
+        }
+
+        Subject subjectRandom = getSubjectDifferentOf(subjectOld, state, thread);
+        subjectOld.setName(new String(subjectRandom.getName()));
+        subjectOld.setId(subjectRandom.getId());
+        subjectOld.setDificulty(subjectRandom.getDificulty());
+
+//        subjectOld = getSubjectDifferentOf(subjectOld);
+//        String s = subjectOld.getName(); s += "[M]"; subjectOld.setName(s);
+//        System.out.println(""+subjectOld.getName());
+
+        return Boolean.TRUE;
+    }
+
+    /**
+     * Get a Subject different of the subject passed by param.
+     *
+     * @param  subject
+     * @param  state
+     * @param  thread
+     *
+     * @return <code>Subject</code> the new instance.
+     *
+     * @see {@link Subject}
+     */
+    public Subject getSubjectDifferentOf(Subject subject, EvolutionState state, int thread) {
+        Subject subjectNew  = subjects.get(state.random[thread].nextInt(subjects.size()));
+        int idRandom        = subjectNew.getId();
+        int idOld           = subject.getId();
+
+        while(idRandom == idOld) {
+            subjectNew  = subjects.get(state.random[thread].nextInt(subjects.size()));
+            idRandom    = subjectNew.getId();
+        }
+
+        return getNewSubjectInstance(subjectNew);
+    }
+
+    /**
+     * Get a new instance from a subject passed by param.
+     *
+     * @param  subject
+     * @return <code>Subject</code> the new instance from subject.
+     *
+     * @see {@link Subject}
+     */
+    public Subject getNewSubjectInstance(Subject subject) {
+        Subject subjectRandom = new Subject();
+        subjectRandom.setName(new String(subject.getName()));
+        subjectRandom.setId(subject.getId());
+        subjectRandom.setDificulty(subject.getDificulty());
+        return subjectRandom;
+    }
+
+    /**
+     * Get a new instance from a arbitrary subjectWorkload.
+     *
+     * @param state
+     * @param thread
+     *
+     * @return <code>SubjectWorkload</code> the new instance from subjectWorkload.
+     *
+     * @see {@link SubjectWorkload}
+     * @see {@link ec.EvolutionState}
+     */
+    public SubjectWorkload getNewSubjectWorkloadInstance(EvolutionState state, int thread) {
+        Subject subject = subjects.get(state.random[thread].nextInt(subjects.size()));
+
+        Subject subjectNew = getNewSubjectInstance(subject);
+
+        int workload = (state.random[thread].nextInt(12) + 1); //random from 1 to 12
+
+        SubjectWorkload subjectWorkload = new SubjectWorkload();
+        subjectWorkload.setSubject(subjectNew);
+        subjectWorkload.setWorkload(workload);
+        return subjectWorkload;
+    }
+
     /*
      * @see ec.vector.GeneVectorIndividual#hashCode()
      */
@@ -468,9 +459,9 @@ public class DayPlanGene extends Gene {
 	@Override
 	public String printGeneToStringForHumans() {
         ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
-        subjectWorkloads.addAll(this.morning);
-        subjectWorkloads.addAll(this.afternoon);
-        subjectWorkloads.addAll(this.night);
+        subjectWorkloads.addAll(morning);
+        subjectWorkloads.addAll(afternoon);
+        subjectWorkloads.addAll(night);
 
         String output = new String("");
         output += "" + ( "--------------------------\n" +
@@ -633,6 +624,20 @@ public class DayPlanGene extends Gene {
 		return this.night;
 	}
 
+    /**
+    *   Print in the console the lines of the input.
+    */
+    public void printInputLines(Vector<String> lines, String type) {
+
+        System.out.println("\n------------"+ type +"---------------");
+
+        for (String lineIt: lines) {
+            System.out.println(lineIt);
+            System.out.println();
+        }
+
+        System.out.println("----------------Done!-------------------");
+
+    }
+
 }
-
-
