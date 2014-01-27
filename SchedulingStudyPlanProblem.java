@@ -136,25 +136,197 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 /*        ((acepts*100)/qtdFixedConstraints) + ((acepts*100)/qtdFixedConstraints)
         (float)(((double)sum)/ind2.genome.length)
 */
-        float fitness = subjectInInappropriatePeriod() ? 200.0f : 0.0f;
+        //float fitness = subjectInInappropriatePeriod();
+        float fitness = subjectInInappropriatePeriod() + hardSubjectInEasyPeriod();
         return fitness;
     }
 
     /**
-    *   Hard Subjects should be alocated in the period of the day that the user
-    *   have more intelectual facility for to learn.
+    * Hard Subjects should be alocated in the period of the day that the user
+    * have more intelectual facility for to learn.
+    *
+    * Classification: Hard Constraint.
+    *
+    * @return  <code>true</code>   if the constraint was attended.
+    *          <code>false</code>  otherwise.
     */
-    public void hardSubjectInEasyPeriod() {
+    public float hardSubjectInEasyPeriod() {
+        long individualLength = individual.size();
+        int cycleIt = 0;
+        ArrayList<Period> studyCycle = this.intelectualAvailable.getStudyCycle();
+        int acumulativeValue = 0;
+        int dificultySum = 0;
+        int qtdPeriodsAvailable = 0;
+
+        float dificultyAverage;
+        //dayPeriodAvailable;
+
+        for (int i = 0; i < individualLength; i++) {
+            DayPlanGene gene = (DayPlanGene) individual.genome[i];
+            Period period = studyCycle.get(cycleIt);
+
+            //Morning
+            if (!gene.getMorning().isEmpty()) {
+                qtdPeriodsAvailable++;
+                for (SubjectWorkload sw: gene.getMorning()) {
+                    dificultySum += sw.getSubject().getDificulty();
+                }
+                dificultyAverage = dificultySum / gene.getMorning().size();
+
+                acumulativeValue += getAcumulativeValueByDificulty(period.getMorning(), dificultyAverage);
+            }
+
+            //Afternoon
+            if (!gene.getAfternoon().isEmpty()) {
+                qtdPeriodsAvailable++;
+                for (SubjectWorkload sw: gene.getAfternoon()) {
+                    dificultySum += sw.getSubject().getDificulty();
+                }
+                dificultyAverage = dificultySum / gene.getAfternoon().size();
+
+                acumulativeValue += getAcumulativeValueByDificulty(period.getAfternoon(), dificultyAverage);
+            }
+
+            //Night
+            if (!gene.getNight().isEmpty()) {
+                qtdPeriodsAvailable++;
+                for (SubjectWorkload sw: gene.getNight()) {
+                    dificultySum += sw.getSubject().getDificulty();
+                }
+                dificultyAverage = dificultySum / gene.getNight().size();
+
+                acumulativeValue += getAcumulativeValueByDificulty(period.getNight(), dificultyAverage);
+            }
+
+        }
+
+        float total = acumulativeValue / qtdPeriodsAvailable;
+        //System.out.println("acumulativeValue: " + acumulativeValue + " qtdPeriodsAvailable: " + qtdPeriodsAvailable + " Total: " + total);
+
+        return total;
     }
 
     /**
-    *   Check if the subjects are studies in one time only.
+     * Return the acumulativeValue from the period using the
+     * table classification below.
+     *
+     * Subjects difficulty table:
+     *             from 0 to 1,66 Easy.
+     *             from 1,67 to 3,33 Median.
+     *             From 3,34 to 5 Hard
+     *
+     * @param  periodOfDificult [description]
+     * @param  dificultyAverage [description]
+     *
+     * @return                  [description]
+     *
+     * @see {@link Period}
+     */
+    public int getAcumulativeValueByMorningDificulty(Period periodOfDificult, float dificultyAverage) {
+        int acumulativeValue = 0;
+
+        //Hard subjects
+        if (dificultyAverage > 3.33f) {
+            if (periodOfDificult.getMorning() == GOOD) {
+                acumulativeValue = 100;
+            } else if (periodOfDificult.getMorning() == MEDIAN) {
+                //acumulativeValue = 50;
+            }
+        } else if (dificultyAverage > 1.66f) { //Median subjects
+            if (periodOfDificult.getMorning() == GOOD) {
+                //acumulativeValue = 50;
+            } else if (periodOfDificult.getMorning() == MEDIAN) {
+                acumulativeValue = 100;
+            } else {
+                //acumulativeValue = 50;
+            }
+        } else { // Easy subjects
+            if (periodOfDificult.getMorning() == MEDIAN) {
+                //acumulativeValue = 50;
+            } else if (periodOfDificult.getMorning() == BAD) {
+                acumulativeValue = 100;
+            }
+        }
+
+        return acumulativeValue;
+    }
+
+    public int getAcumulativeValueByAfternoonDificulty(Period periodOfDificult, float dificultyAverage) {
+        int acumulativeValue = 0;
+
+        //Hard subjects
+        if (dificultyAverage > 3.33f) {
+            if (periodOfDificult.getAfternoon() == GOOD) {
+                acumulativeValue = 100;
+            } else if (periodOfDificult.getAfternoon() == MEDIAN) {
+                //acumulativeValue = 50;
+            }
+        } else if (dificultyAverage > 1.66f) { //Median subjects
+            if (periodOfDificult.getAfternoon() == GOOD) {
+                //acumulativeValue = 50;
+            } else if (periodOfDificult.getAfternoon() == MEDIAN) {
+                acumulativeValue = 100;
+            } else {
+                //acumulativeValue = 50;
+            }
+        } else { // Easy subjects
+            if (periodOfDificult.getAfternoon() == MEDIAN) {
+                //acumulativeValue = 50;
+            } else if (periodOfDificult.getAfternoon() == BAD) {
+                acumulativeValue = 100;
+            }
+        }
+
+        return acumulativeValue;
+    }
+
+    public int getAcumulativeValueByDificulty(char periodAvailable, float dificultyAverage) {
+        int acumulativeValue = 0;
+
+        //Hard subjects
+        if (dificultyAverage > 3.33f) {
+            if (periodAvailable == GOOD) {
+                acumulativeValue = 100;
+            } else if (periodAvailable == MEDIAN) {
+                acumulativeValue = 50;
+            }
+        } else if (dificultyAverage > 1.66f) { //Median subjects
+            if (periodAvailable == GOOD) {
+                acumulativeValue = 50;
+            } else if (periodAvailable == MEDIAN) {
+                acumulativeValue = 100;
+            } else {
+                acumulativeValue = 50;
+            }
+        } else { // Easy subjects
+            if (periodAvailable == MEDIAN) {
+                acumulativeValue = 50;
+            } else if (periodAvailable == BAD) {
+                acumulativeValue = 100;
+            }
+        }
+
+        return acumulativeValue;
+    }
+
+    /**
+    * Check if the subjects are studies in one time only.
+    *
+    * Classification: Fixed Constraint.
+    *
+    * @return  <code>true</code>   if the constraint was satisfied.
+    *          <code>false</code>  otherwise.
     */
     public void notCostAllTimeInTheSameSubject() {
     }
 
     /**
-    *   Check if the study plan have grow-up learn.
+    * Check if the study plan have grow-up learn.
+    *
+    * Classification: Fixed Constraint.
+    *
+    * @return  <code>true</code>   if the constraint was satisfied.
+    *          <code>false</code>  otherwise.
     */
     public void toStudyGradually() {
     }
@@ -165,37 +337,62 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *
     * Classification: Fixed Constraint.
     *
-    * @return
+    * @return  <code>true</code>   if the constraint was satisfied.
+    *          <code>false</code>  otherwise.
     */
-    public Boolean subjectInInappropriatePeriod() {
+    public float subjectInInappropriatePeriod() {
         long individualLength = individual.size();
         int cycleIt = 0;
         ArrayList<Period> studyCycle = this.dayPeriodAvailable.getStudyCycle();
         int studyCycleSize = studyCycle.size();
+        int acumulativeValue = 0;
+        int qtdNothingPeriods = 0;
         //dayPeriodAvailable;
 
         for (int i = 0; i < individualLength; i++) {
             DayPlanGene gene = (DayPlanGene) individual.genome[i];
 
-            if (studyCycle.get(cycleIt).getMorning() == NOTHING && gene.getMorning().size() > 0) {
-                return Boolean.FALSE;
-            } else if (studyCycle.get(cycleIt).getAfternoon() == NOTHING && gene.getAfternoon().size() > 0) {
-                return Boolean.FALSE;
-            } else if (studyCycle.get(cycleIt).getNight() == NOTHING && gene.getNight().size() > 0) {
-                return Boolean.FALSE;
+            if (studyCycle.get(cycleIt).getMorning() == NOTHING) {
+                qtdNothingPeriods++;
+                if(gene.getMorning().isEmpty()) {
+                    acumulativeValue += 100;
+                }
+            }
+
+            if (studyCycle.get(cycleIt).getAfternoon() == NOTHING) {
+                qtdNothingPeriods++;
+                if (gene.getAfternoon().isEmpty()) {
+                    acumulativeValue += 100;
+                }
+            }
+
+            if (studyCycle.get(cycleIt).getNight() == NOTHING) {
+                qtdNothingPeriods++;
+                if (gene.getNight().isEmpty()) {
+                    acumulativeValue += 100;
+                }
             }
 
             cycleIt++;
-            if(cycleIt == studyCycleSize){
+            if(cycleIt == studyCycleSize) {
                 cycleIt = 0;
             }
         }
 
-        return Boolean.TRUE;
+        //System.out.println( "qtdNothingPeriods: " + qtdNothingPeriods + " acumulativeValue: " + acumulativeValue);
+
+        float total = acumulativeValue / qtdNothingPeriods;
+
+        return total;
     }
 
     /**
-    *   Check if the hours to leisure foi atendida.
+    * Check if the hours to leisure foi atendida.
+    *
+    * Classification: Soft Constraint.
+    *
+    * @return  <code>true</code>   if the constraint was attended.
+    *          <code>false</code>  otherwise.
     */
     public void hoursToLeisure() {
     }

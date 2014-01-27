@@ -14,8 +14,8 @@ From windows command line (cmd) :
 action		|		comand
 ____________|_______________________________________
 1. set		|   c:\> set ECJ_CLASSPATH=C:/ecj;%CLASSPATH% (or see #3)
-2. compile	|	c:\ecj\> javac ec\app\projectname\name.java
-3. run		|   c:\> java -cp %ECJ_CLASSPATH% ec.Evolve -file c:\ecj\ec\app\projectname\name.params
+2. compile	|	c:\ecj\> javac ec\app\aspga\SchedulingStudyPlanProblem.java
+3. run		|   c:\> java -cp %ECJ_CLASSPATH% ec.Evolve -file c:\ecj\ec\app\aspga\aspga.params
 
 then you can run the tutorial 1 code from any directory using:
 

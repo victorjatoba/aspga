@@ -36,14 +36,14 @@ public class DayPlanGene extends Gene {
 	public static final String P_COURSEINFORMATION = "courseInformation";
 
 	//Our allele is represented by the tree period of the day below.
-	ArrayList<SubjectWorkload> morning;
-	ArrayList<SubjectWorkload> afternoon;
-	ArrayList<SubjectWorkload> night;
+	public ArrayList<SubjectWorkload> morning;
+	public ArrayList<SubjectWorkload> afternoon;
+	public ArrayList<SubjectWorkload> night;
 
-	ArrayList<Subject> subjects;
-    EvolutionState state;
-    int thread;
-    Parameter base;
+	public ArrayList<Subject> subjects;
+    public EvolutionState state;
+    public int thread;
+    public Parameter base;
 
     @Override
     public void setup(final EvolutionState state, final Parameter base) {
