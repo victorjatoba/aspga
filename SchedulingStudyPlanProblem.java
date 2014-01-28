@@ -91,7 +91,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         Vector<String> dayPeriodAvailableVector = convertFileToVectorString(dayPeriodAvailableInput);
         Vector<String> studentInformationVector = convertFileToVectorString(studentInformationInput);
 
-        printInputLines(courseInformationVector, "CourseInformation");
+        //printInputLines(courseInformationVector, "CourseInformation");
 
         this.subjects = fillSubjects(courseInformationVector);
         this.student = fillStudent(studentInformationVector);
@@ -126,7 +126,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             /// ...the fitness...
             fitnessValue,
             ///... is the individual ideal?  Indicate here...
-            (fitnessValue == 100.0f));
+            (fitnessValue == 200.0f));
 
         individual.evaluated = true;
     }
@@ -137,8 +137,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         (float)(((double)sum)/ind2.genome.length)
 */
         //float fitness = subjectInInappropriatePeriod();
-        //float fitness = subjectInInappropriatePeriod() + hardSubjectInEasyPeriod();
-        float fitness = maxSixHoursPerPeriod();
+        float fitness = subjectInInappropriatePeriod() + hardSubjectInEasyPeriod();
+        //float fitness = maxSixHoursPerPeriod();
         return fitness;
     }
 
@@ -330,7 +330,10 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     }
 
     /**
-    * A period have been max six hours.
+    * Verify if the student hours to leisure was attended.
+    *
+    * WHEN ONE PERSON CHOISE "NOTHING" IN A PERIOD OF THE DAY, THEY
+    * WAS PLANING
     *
     * Classification: Soft Constraint.
     *
@@ -338,6 +341,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *          <code>false</code>  otherwise.
     */
     public void hoursToLeisure() {
+
     }
 
     /**

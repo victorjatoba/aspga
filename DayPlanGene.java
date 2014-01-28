@@ -82,10 +82,11 @@ public class DayPlanGene extends Gene {
         //System.out.println("maxSubjectsQuantity: " + maxSubjectsQuantity);
 
         for(int i = 0; i < maxSubjectsQuantity; i++) {
-
+/*
             SubjectWorkload subjectWorkload = getNewSubjectWorkloadInstance(state, thread);
 
             int periodOfTheDay = state.random[thread].nextInt(3); //random from 0 to 2
+            //Don't be permitted insert duplicated subjects
             if(periodOfTheDay == 0 && !contens(morning, subjectWorkload)) {
                 morning.add(subjectWorkload);
             } else if (periodOfTheDay == 1 && !contens(afternoon, subjectWorkload)) {
@@ -93,13 +94,15 @@ public class DayPlanGene extends Gene {
             } else if(!contens(night, subjectWorkload)) {
                 night.add(subjectWorkload);
             }
+*/
+            insertSubjectWorkload(state, thread);
         }
-
+/*
         ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
         subjectWorkloads.addAll(morning);
         subjectWorkloads.addAll(afternoon);
         subjectWorkloads.addAll(night);
-
+*/
         //System.out.println(printGeneToStringForHumans());
     }
 
@@ -112,15 +115,25 @@ public class DayPlanGene extends Gene {
      * @return  <code>true</code>   if found.
      *          <code>false</code>  otherwise.
      */
-    public Boolean contens(ArrayList<SubjectWorkload> periodOfTheDay, SubjectWorkload sw) {
+    public Boolean contensAndMoreThanFive(ArrayList<SubjectWorkload> periodOfTheDay, SubjectWorkload sw) {
 
         SubjectWorkload swToBeFind = sw;
+        int workloadSum = 0;
+        Boolean constraint = Boolean.FALSE;
+
         for (SubjectWorkload swActual : periodOfTheDay) {
+            workloadSum += swActual.getWorkload();
+            //if they are duplicated, return!
             if(swActual.getSubject().getId() == swToBeFind.getSubject().getId()){
                 return Boolean.TRUE;
             }
         }
-        return Boolean.FALSE;
+
+        if (workloadSum + sw.getWorkload() > 5) {
+            constraint = Boolean.TRUE;
+        }
+
+        return constraint;
     }
 
     @Override
@@ -188,10 +201,17 @@ public class DayPlanGene extends Gene {
     @Override
     public void mutate(final EvolutionState state, final int thread) {
         while(!doMutate(state, thread));
+        //doMutate(state, thread);
     }
 
-    /**
-    * Make mutation. Case success return true and false otherwise.
+   /**
+    * To make gene mutation.
+    *
+    * @param  state  [description]
+    * @param  thread [description]
+    *
+    * @return   <code>true</code>   Case the mutation was done.
+     *          <code>false</code>  otherwise.
     */
     public Boolean doMutate(EvolutionState state, final int thread) {
 
@@ -238,26 +258,16 @@ public class DayPlanGene extends Gene {
      */
     public Boolean insertSubjectWorkload(EvolutionState state, final int thread) {
 
-        int workload = (state.random[thread].nextInt(12) + 1); //random from 1 to 12. Min and max per period of the day.
-        SubjectWorkload subjectWorkload = new SubjectWorkload();
-        subjectWorkload.setWorkload(workload);
-
-/*        Subject subjectNew = new Subject();
-        subjectNew.setName(new String(subjectRandom.getName()));
-        subjectNew.setId(subjectRandom.getId());
-        subjectNew.setDificulty(subjectRandom.getDificulty());
-*/
-        Subject subjectRandom = subjects.get(state.random[thread].nextInt(subjects.size()));
-        Subject subjectNew = getNewSubjectInstance(subjectRandom);
-        subjectWorkload.setSubject(subjectNew);
+        SubjectWorkload subjectWorkload = getNewSubjectWorkloadInstance(state, thread);
 
         int periodOfTheDay = state.random[thread].nextInt(3); //random from 0 to 2
-        if(periodOfTheDay == 0 && !contens(morning, subjectWorkload)) {
-            this.morning.add(subjectWorkload);
-        } else if (periodOfTheDay == 1 && !contens(afternoon, subjectWorkload)) {
-            this.afternoon.add(subjectWorkload);
-        } else if(!contens(night, subjectWorkload)) {
-            this.night.add(subjectWorkload);
+        //Don't be permitted insert duplicated subjects
+        if(periodOfTheDay == 0 && !contensAndMoreThanFive(morning, subjectWorkload)) {
+            morning.add(subjectWorkload);
+        } else if (periodOfTheDay == 1 && !contensAndMoreThanFive(afternoon, subjectWorkload)) {
+            afternoon.add(subjectWorkload);
+        } else if(!contensAndMoreThanFive(night, subjectWorkload)) {
+            night.add(subjectWorkload);
         } else {
             return Boolean.FALSE;
         }
@@ -294,37 +304,68 @@ public class DayPlanGene extends Gene {
      * 			<code>false</code> 	otherwise.
      */
     public Boolean changeWorkload(EvolutionState state, int thread) {
-        SubjectWorkload subjectWorkload = new SubjectWorkload();
+        SubjectWorkload randomSubjectWorkload;
+        ArrayList<SubjectWorkload> period;
 
         int periodOfTheDay = state.random[thread].nextInt(3); //random from 0 to 2
         if(periodOfTheDay == 0 && !this.morning.isEmpty()) {
-            subjectWorkload = this.morning.get(state.random[thread].nextInt(morning.size()));
+            period = this.morning;
         } else if (periodOfTheDay == 1 && !this.afternoon.isEmpty()) {
-            subjectWorkload = this.afternoon.get(state.random[thread].nextInt(afternoon.size()));
+            period = this.afternoon;
         } else if (!this.night.isEmpty()) {
-            subjectWorkload = this.night.get(state.random[thread].nextInt(night.size()));
+            period = this.night;
         } else {
-//            System.out.println("Not mutation workload");
             return Boolean.FALSE;
         }
-        subjectWorkload.setWorkload(getWorkloadDifferentOf(subjectWorkload.getWorkload(), state, thread));
-//        System.out.println(((float)subjectWorkload.getWorkload()/(float)2)+"[M]");
 
-        return Boolean.TRUE;
+        randomSubjectWorkload = period.get(state.random[thread].nextInt(period.size()));
+        int workloadToBeChanged = getWorkloadDifferentOf(randomSubjectWorkload.getWorkload(), state, thread);
+        if (!workloadExceeds(period, workloadToBeChanged)) {
+            randomSubjectWorkload.setWorkload(workloadToBeChanged);
+            //String s = randomSubjectWorkload.getSubject().getName(); s += "[M]"; randomSubjectWorkload.getSubject().setName(s);
+            return Boolean.TRUE;
+        } else {
+            return Boolean.FALSE;
+        }
+    }
+
+    /**
+     * Verify if the sum of the workload and the all workloads of the Subjects passed
+     * by param don't exceeds more than five hours.
+     *
+     * @param  periodOfTheDay       The subjects and their workloads to be verified.
+     * @param  workload             the workload to be verified.
+     *
+     * @return  <code>true</code>   if the sum don't exceeds five hours.
+     *          <code>false</code>  otherwise.
+     */
+    public Boolean workloadExceeds(ArrayList<SubjectWorkload> periodOfTheDay, int workload) {
+
+        int workloadSum = 0;
+
+        for (SubjectWorkload swActual : periodOfTheDay) {
+            workloadSum += swActual.getWorkload();
+        }
+
+        if (workloadSum + workload > 10) {
+            return Boolean.TRUE;
+        }
+
+        return Boolean.FALSE;
     }
 
     /**
      * Get a workload different of the workload passed by param.
      *
      * @param  workload
-     * @return <code>int</code> the workload value. From 1 to 12
+     * @return <code>int</code> the workload value. From 1 to 10
      */
     public int getWorkloadDifferentOf(int workload, EvolutionState state, int thread) {
-        int workloadRandom = (state.random[thread].nextInt(12) + 1);
+        int workloadRandom = (state.random[thread].nextInt(10) + 1);
 
         while(workloadRandom == workload) {
 //            System.out.println(workload + " equals. Generating other..");
-            workloadRandom = (state.random[thread].nextInt(12) + 1);
+            workloadRandom = (state.random[thread].nextInt(10) + 1);
         }
 
         return workloadRandom;
@@ -337,7 +378,7 @@ public class DayPlanGene extends Gene {
      * 			<code>false</code> 	otherwise.
      */
     public Boolean changeSubject(EvolutionState state, int thread) {
-        //int workload = (state.random[thread].nextInt(12) + 1);
+        //int workload = (state.random[thread].nextInt(10) + 1);
 
         Subject subjectOld;
 
@@ -421,7 +462,7 @@ public class DayPlanGene extends Gene {
 
         Subject subjectNew = getNewSubjectInstance(subject);
 
-        int workload = (state.random[thread].nextInt(12) + 1); //random from 1 to 12
+        int workload = (state.random[thread].nextInt(10) + 1); //random from 1 to 10
 
         SubjectWorkload subjectWorkload = new SubjectWorkload();
         subjectWorkload.setSubject(subjectNew);
