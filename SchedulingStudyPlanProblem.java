@@ -126,7 +126,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             /// ...the fitness...
             fitnessValue,
             ///... is the individual ideal?  Indicate here...
-            (fitnessValue == 200.0f));
+            (fitnessValue == 100.0f));
 
         individual.evaluated = true;
     }
@@ -137,7 +137,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         (float)(((double)sum)/ind2.genome.length)
 */
         //float fitness = subjectInInappropriatePeriod();
-        float fitness = subjectInInappropriatePeriod() + hardSubjectInEasyPeriod();
+        //float fitness = subjectInInappropriatePeriod() + hardSubjectInEasyPeriod();
+        float fitness = maxSixHoursPerPeriod();
         return fitness;
     }
 
@@ -222,64 +223,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @see {@link Period}
      */
-    public int getAcumulativeValueByMorningDificulty(Period periodOfDificult, float dificultyAverage) {
-        int acumulativeValue = 0;
-
-        //Hard subjects
-        if (dificultyAverage > 3.33f) {
-            if (periodOfDificult.getMorning() == GOOD) {
-                acumulativeValue = 100;
-            } else if (periodOfDificult.getMorning() == MEDIAN) {
-                //acumulativeValue = 50;
-            }
-        } else if (dificultyAverage > 1.66f) { //Median subjects
-            if (periodOfDificult.getMorning() == GOOD) {
-                //acumulativeValue = 50;
-            } else if (periodOfDificult.getMorning() == MEDIAN) {
-                acumulativeValue = 100;
-            } else {
-                //acumulativeValue = 50;
-            }
-        } else { // Easy subjects
-            if (periodOfDificult.getMorning() == MEDIAN) {
-                //acumulativeValue = 50;
-            } else if (periodOfDificult.getMorning() == BAD) {
-                acumulativeValue = 100;
-            }
-        }
-
-        return acumulativeValue;
-    }
-
-    public int getAcumulativeValueByAfternoonDificulty(Period periodOfDificult, float dificultyAverage) {
-        int acumulativeValue = 0;
-
-        //Hard subjects
-        if (dificultyAverage > 3.33f) {
-            if (periodOfDificult.getAfternoon() == GOOD) {
-                acumulativeValue = 100;
-            } else if (periodOfDificult.getAfternoon() == MEDIAN) {
-                //acumulativeValue = 50;
-            }
-        } else if (dificultyAverage > 1.66f) { //Median subjects
-            if (periodOfDificult.getAfternoon() == GOOD) {
-                //acumulativeValue = 50;
-            } else if (periodOfDificult.getAfternoon() == MEDIAN) {
-                acumulativeValue = 100;
-            } else {
-                //acumulativeValue = 50;
-            }
-        } else { // Easy subjects
-            if (periodOfDificult.getAfternoon() == MEDIAN) {
-                //acumulativeValue = 50;
-            } else if (periodOfDificult.getAfternoon() == BAD) {
-                acumulativeValue = 100;
-            }
-        }
-
-        return acumulativeValue;
-    }
-
     public int getAcumulativeValueByDificulty(char periodAvailable, float dificultyAverage) {
         int acumulativeValue = 0;
 
@@ -387,7 +330,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     }
 
     /**
-    * Check if the hours to leisure foi atendida.
+    * A period have been max six hours.
     *
     * Classification: Soft Constraint.
     *
@@ -395,6 +338,70 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *          <code>false</code>  otherwise.
     */
     public void hoursToLeisure() {
+    }
+
+    /**
+    * Check if the Student hours to leisure was satisfield.
+    *
+    * Classification: Fixed Constraint.
+    *
+    * @return  <code>true</code>   if the constraint was attended.
+    *          <code>false</code>  otherwise.
+    */
+    public float maxSixHoursPerPeriod() {
+        long individualLength = individual.size();
+
+        int qtdPeriodsAvailable = 0;
+        int acumulativeValue = 0;
+
+        for (int i = 0; i < individualLength; i++) {
+            DayPlanGene gene = (DayPlanGene) individual.genome[i];
+
+            //Morning
+            if (!gene.getMorning().isEmpty()) {
+                qtdPeriodsAvailable++;
+                acumulativeValue += verifySubjectsSum(gene.getMorning());
+            }
+
+            //Afternoon
+            if (!gene.getAfternoon().isEmpty()) {
+                qtdPeriodsAvailable++;
+                acumulativeValue += verifySubjectsSum(gene.getAfternoon());
+            }
+
+            //Night
+            if (!gene.getNight().isEmpty()) {
+                qtdPeriodsAvailable++;
+                acumulativeValue += verifySubjectsSum(gene.getNight());
+            }
+        }
+
+        float total = acumulativeValue / qtdPeriodsAvailable;
+        //System.out.println("acumulativeValue: " + acumulativeValue + " qtdPeriodsAvailable: " + qtdPeriodsAvailable + " Total: " + total);
+
+        return total;
+    }
+
+    /**
+     * Verify if all subjectsWorkload into the period of the day passed by param
+     * exceeds six hours.
+     *
+     * @param  periodWithSubjects   the subjects of the period of the day.
+     *
+     * @return      100     if the subjects workload don't exceeds six hours.
+     *              0       if exceeds.
+     */
+    public int verifySubjectsSum(ArrayList<SubjectWorkload> periodWithSubjects) {
+        int workloadSum = 0;
+        int acumulativeValue = 0;
+        for (SubjectWorkload sw: periodWithSubjects) {
+            workloadSum += sw.getWorkload();
+        }
+        if(workloadSum < 12) {
+            acumulativeValue += 100;
+        }
+
+        return acumulativeValue;
     }
 
     /**
