@@ -18,7 +18,7 @@ public class Subject
 {
 	int id;
 	String name;
-	int dificulty;
+	char dificulty;
 //	private int importance;
 
 	public String getName()
@@ -31,12 +31,12 @@ public class Subject
 		this.name = name;
 	}
 
-	public int getDificulty()
+	public char getDificulty()
 	{
 		return this.dificulty;
 	}
 
-	public void setDificulty(int dificulty)
+	public void setDificulty(char dificulty)
 	{
 		this.dificulty = dificulty;
 	}

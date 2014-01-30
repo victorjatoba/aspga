@@ -57,22 +57,21 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     public static final char NOTHING =  'N';
 
     public static final char GOOD =     'G';
-    public static final char MEDIAN =   'M';
+    public static final char MEDIUM =   'M';
     public static final char BAD =      'B';
 
-    public EvolutionState state;
-    public Parameter base;
+    public static final char HARD =     'H';
+    public static final char EASY =     'E';
+    public static final char NONE_OF_THE_OPTIONS =     'N';
 
     ArrayList<Subject> subjects;
     Student student;
     PeriodAvailable dayPeriodAvailable;
     PeriodAvailable intelectualAvailable;
 
-    GeneVectorIndividual individual;
+    //GeneVectorIndividual individual;
 
     public void setup (  final EvolutionState state, final Parameter base) {
-        this.state = state;
-        this.base = base;
 
         File courseInformationInput     = null;
         File intelectualAvailableInput  = null;
@@ -84,7 +83,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         dayPeriodAvailableInput     = state.parameters.getFile(base.push(P_DAYPERIODAVAILABLE),null);
         studentInformationInput     = state.parameters.getFile(base.push(P_STUDENTINFORMATION),null);
 
-        verifyInputExistence(courseInformationInput, intelectualAvailableInput, dayPeriodAvailableInput, studentInformationInput);
+        verifyInputExistence(state, base, courseInformationInput, intelectualAvailableInput, dayPeriodAvailableInput, studentInformationInput);
 
         Vector<String> courseInformationVector = convertFileToVectorString(courseInformationInput);
         Vector<String> intelectualAvailableVector = convertFileToVectorString(intelectualAvailableInput);
@@ -93,10 +92,10 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
         //printInputLines(courseInformationVector, "CourseInformation");
 
-        this.subjects = fillSubjects(courseInformationVector);
-        this.student = fillStudent(studentInformationVector);
-        this.dayPeriodAvailable = fillPeriodAvailable(dayPeriodAvailableVector);
-        this.intelectualAvailable = fillPeriodAvailable(intelectualAvailableVector);
+        this.subjects = fillSubjects(courseInformationVector, state);
+        this.student = fillStudent(studentInformationVector, state);
+        this.dayPeriodAvailable = fillPeriodAvailable(dayPeriodAvailableVector, state);
+        this.intelectualAvailable = fillPeriodAvailable(intelectualAvailableVector, state);
     }
 
     /**
@@ -113,32 +112,34 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             state.output.fatal("Whoa!  It's not a GeneVectorIndividual!!!",null);
         }
 
-        int sum=0;
-        individual = (GeneVectorIndividual)ind;
+        GeneVectorIndividual individual = (GeneVectorIndividual)ind;
 
         if (!(individual.fitness instanceof SimpleFitness)) {
             state.output.fatal("Whoa!  It's not a SimpleFitness!!!",null);
         }
 
-        float fitnessValue = calculateFitnessValue();
+        float fitnessValue = calculateFitnessValue(individual);
 
         ((SimpleFitness)individual.fitness).setFitness(state,
             /// ...the fitness...
             fitnessValue,
             ///... is the individual ideal?  Indicate here...
-            (fitnessValue == 200.0f));
+            (fitnessValue == 170.0f));
 
         individual.evaluated = true;
     }
 
-    public float calculateFitnessValue() {
+    public float calculateFitnessValue(GeneVectorIndividual individual) {
 
 /*        ((acepts*100)/qtdFixedConstraints) + ((acepts*100)/qtdFixedConstraints)
         (float)(((double)sum)/ind2.genome.length)
 */
         //float fitness = subjectInInappropriatePeriod();
-        float fitness = subjectInInappropriatePeriod() + hardSubjectInEasyPeriod();
-        //float fitness = maxSixHoursPerPeriod();
+        float inappropriatePeriod = subjectInInappropriatePeriod(individual);
+        float hard = hardSubjectInEasyPeriod(individual);
+        //System.out.println("fits: " + inappropriatePeriod + " " + hard);
+        float fitness = inappropriatePeriod + (hard-30);
+        //float fitness = maxSixHoursPerPeriod(individual);
         return fitness;
     }
 
@@ -147,11 +148,93 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     * have more intelectual facility for to learn.
     *
     * Classification: Hard Constraint.
+     * @param individual
     *
     * @return  <code>true</code>   if the constraint was attended.
     *          <code>false</code>  otherwise.
     */
-    public float hardSubjectInEasyPeriod() {
+    public float hardSubjectInEasyPeriod(GeneVectorIndividual individual) {
+        long individualLength = individual.size();
+        int cycleIt = 0;
+        ArrayList<Period> studyCycle = this.intelectualAvailable.getStudyCycle();
+        int acumulativeValue = 0;
+        int qtdPeriodsAvailable = 0;
+        char maxChar;
+        ArrayList<SubjectWorkload> genePeriod;
+        //dayPeriodAvailable;
+
+        for (int i = 0; i < individualLength; i++) {
+            DayPlanGene gene = (DayPlanGene) individual.genome[i];
+            Period period = studyCycle.get(cycleIt);
+
+            //Morning
+            genePeriod = gene.getMorning();
+            if (!genePeriod.isEmpty()) {
+                qtdPeriodsAvailable++;
+
+                maxChar = getMaxDificulty(genePeriod);
+                acumulativeValue += getAcumulativeValueByDificulty(period.getMorning(), maxChar);
+            }
+
+            //Afternoon
+            genePeriod = gene.getAfternoon();
+            if (!genePeriod.isEmpty()) {
+                qtdPeriodsAvailable++;
+
+                maxChar = getMaxDificulty(genePeriod);
+                acumulativeValue += getAcumulativeValueByDificulty(period.getMorning(), maxChar);
+            }
+
+            //Night
+            genePeriod = gene.getNight();
+            if (!genePeriod.isEmpty()) {
+                qtdPeriodsAvailable++;
+
+                maxChar = getMaxDificulty(genePeriod);
+                acumulativeValue += getAcumulativeValueByDificulty(period.getMorning(), maxChar);
+            }
+
+        }
+
+        float total = acumulativeValue / qtdPeriodsAvailable;
+        //System.out.println("acumulativeValue: " + acumulativeValue + " qtdPeriodsAvailable: " + qtdPeriodsAvailable + " Total: " + total);
+
+        return total;
+    }
+
+    public char getMaxDificulty(ArrayList<SubjectWorkload> subjects) {
+        char maxChar;
+        int maxDif;
+        int hardSum = 0;
+        int mediumSum = 0;
+        int easySum = 0;
+
+        for (SubjectWorkload sw: subjects) {
+            char dificulty = sw.getSubject().getDificulty();
+            if (dificulty == HARD) {
+                hardSum++;
+            } else if (dificulty == MEDIUM) {
+                mediumSum++;
+            } else {
+                easySum++;
+            }
+        }
+        maxDif = Math.max(Math.max(hardSum,mediumSum),easySum);
+
+        maxChar = NONE_OF_THE_OPTIONS;
+        if (maxDif == hardSum) {
+            maxChar = HARD;
+        } else if (maxDif == mediumSum) {
+            maxChar = MEDIUM;
+        } else {
+            maxChar = EASY;
+        }
+
+        return maxChar;
+    }
+
+/*
+    public float hardSubjectInEasyPeriod(GeneVectorIndividual individual) {
         long individualLength = individual.size();
         int cycleIt = 0;
         ArrayList<Period> studyCycle = this.intelectualAvailable.getStudyCycle();
@@ -168,6 +251,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
             //Morning
             if (!gene.getMorning().isEmpty()) {
+                dificultySum = 0;
                 qtdPeriodsAvailable++;
                 for (SubjectWorkload sw: gene.getMorning()) {
                     dificultySum += sw.getSubject().getDificulty();
@@ -179,6 +263,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
             //Afternoon
             if (!gene.getAfternoon().isEmpty()) {
+                dificultySum = 0;
                 qtdPeriodsAvailable++;
                 for (SubjectWorkload sw: gene.getAfternoon()) {
                     dificultySum += sw.getSubject().getDificulty();
@@ -190,6 +275,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
             //Night
             if (!gene.getNight().isEmpty()) {
+                dificultySum = 0;
                 qtdPeriodsAvailable++;
                 for (SubjectWorkload sw: gene.getNight()) {
                     dificultySum += sw.getSubject().getDificulty();
@@ -206,7 +292,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
         return total;
     }
-
+*/
     /**
      * Return the acumulativeValue from the period using the
      * table classification below.
@@ -217,32 +303,34 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *             From 3,34 to 5 Hard
      *
      * @param  periodOfDificult [description]
-     * @param  dificultyAverage [description]
+     * @param  maxDificulty [description]
      *
      * @return                  [description]
      *
      * @see {@link Period}
      */
-    public int getAcumulativeValueByDificulty(char periodAvailable, float dificultyAverage) {
+    public int getAcumulativeValueByDificulty(char periodAvailable, char maxDificulty) {
         int acumulativeValue = 0;
 
-        //Hard subjects
-        if (dificultyAverage > 3.33f) {
+        if (maxDificulty == HARD) {
+            //Hard subjects
             if (periodAvailable == GOOD) {
                 acumulativeValue = 100;
-            } else if (periodAvailable == MEDIAN) {
+            } else if (periodAvailable == MEDIUM) {
                 acumulativeValue = 50;
             }
-        } else if (dificultyAverage > 1.66f) { //Median subjects
+        } else if (maxDificulty > MEDIUM) {
+            //Median subjects
             if (periodAvailable == GOOD) {
                 acumulativeValue = 50;
-            } else if (periodAvailable == MEDIAN) {
+            } else if (periodAvailable == MEDIUM) {
                 acumulativeValue = 100;
             } else {
                 acumulativeValue = 50;
             }
-        } else { // Easy subjects
-            if (periodAvailable == MEDIAN) {
+        } else if (maxDificulty == EASY){
+            // Easy subjects
+            if (periodAvailable == MEDIUM) {
                 acumulativeValue = 50;
             } else if (periodAvailable == BAD) {
                 acumulativeValue = 100;
@@ -251,22 +339,54 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
         return acumulativeValue;
     }
+/*
+    public int getAcumulativeValueByDificulty(char periodAvailable, float dificultyAverage) {
+        int acumulativeValue = 0;
 
+        if (dificultyAverage > 3.33f) {
+            //Hard subjects
+            if (periodAvailable == GOOD) {
+                acumulativeValue = 100;
+            } else if (periodAvailable == MEDIUM) {
+                acumulativeValue = 50;
+            }
+        } else if (dificultyAverage > 1.66f) {
+            //Median subjects
+            if (periodAvailable == GOOD) {
+                acumulativeValue = 50;
+            } else if (periodAvailable == MEDIUM) {
+                acumulativeValue = 100;
+            } else {
+                acumulativeValue = 50;
+            }
+        } else {
+            // Easy subjects
+            if (periodAvailable == MEDIUM) {
+                acumulativeValue = 50;
+            } else if (periodAvailable == BAD) {
+                acumulativeValue = 100;
+            }
+        }
+
+        return acumulativeValue;
+    }
+*/
     /**
     * Check if the subjects are studies in one time only.
     *
-    * Classification: Fixed Constraint.
+    * Classification: Fixed/HARD Constraint.
     *
     * @return  <code>true</code>   if the constraint was satisfied.
     *          <code>false</code>  otherwise.
     */
     public void notCostAllTimeInTheSameSubject() {
+
     }
 
     /**
     * Check if the study plan have grow-up learn.
     *
-    * Classification: Fixed Constraint.
+    * Classification: Fixed/Hard Constraint.
     *
     * @return  <code>true</code>   if the constraint was satisfied.
     *          <code>false</code>  otherwise.
@@ -274,16 +394,27 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     public void toStudyGradually() {
     }
 
+    /**
+     * Try to fill the period of the day that the user
+     * have disponibility to study.
+     *
+     * Classification: Hard
+     *
+     */
+    public void fillPeriodsAvailable() {
+    }
+
    /**
     * Check if have subjects in the period of the day who the
     * user don't have disponibility.
     *
     * Classification: Fixed Constraint.
+ * @param individual
     *
     * @return  <code>true</code>   if the constraint was satisfied.
     *          <code>false</code>  otherwise.
     */
-    public float subjectInInappropriatePeriod() {
+    public float subjectInInappropriatePeriod(GeneVectorIndividual individual) {
         long individualLength = individual.size();
         int cycleIt = 0;
         ArrayList<Period> studyCycle = this.dayPeriodAvailable.getStudyCycle();
@@ -348,11 +479,12 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     * Check if the Student hours to leisure was satisfield.
     *
     * Classification: Fixed Constraint.
+     * @param individual
     *
     * @return  <code>true</code>   if the constraint was attended.
     *          <code>false</code>  otherwise.
     */
-    public float maxSixHoursPerPeriod() {
+    public float maxSixHoursPerPeriod(GeneVectorIndividual individual) {
         long individualLength = individual.size();
 
         int qtdPeriodsAvailable = 0;
@@ -411,7 +543,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     /**
     *   Fill the PeriodAvailable information with the input file
     */
-    public PeriodAvailable fillPeriodAvailable(Vector<String> periodAvailables) {
+    public PeriodAvailable fillPeriodAvailable(Vector<String> periodAvailables, EvolutionState state) {
         ArrayList<Period> studyCycle = new ArrayList<Period>();
 
         if (periodAvailables != null) {
@@ -438,7 +570,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     /**
     *   Fill the Student information with the input file
     */
-    public Student fillStudent(Vector<String> studentIn) {
+    public Student fillStudent(Vector<String> studentIn, EvolutionState state) {
         Student student = new Student();
 
         if (studentIn != null) {
@@ -457,10 +589,15 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         return student;
     }
 
-    /**
-    *   Fill the Subjects with the input file
+   /**
+    * Fill the Subjects with the input file.
+    *
+    * @param  subjectsIn [description]
+    * @param  state      [description]
+    *
+    * @return            the list of subjects standardized.
     */
-    public ArrayList<Subject> fillSubjects(Vector<String> subjectsIn) {
+    public ArrayList<Subject> fillSubjects(Vector<String> subjectsIn, EvolutionState state) {
         ArrayList<Subject> subjects = new ArrayList<Subject>();
 
         if (subjectsIn != null) {
@@ -471,9 +608,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
                 Subject subject = new Subject();
                 subject.setName(subjectDificulty[0]);
                 char dificultyChar = subjectDificulty[1].charAt(0);
-                int dificulty = Character.getNumericValue(dificultyChar);
+                //int dificulty = Character.getNumericValue(dificultyChar);
                 //int dificulty = dificultyChar - '0';
-                subject.setDificulty(dificulty);
+                subject.setDificulty(dificultyChar);
                 subject.setId(i++);
                 subjects.add(subject);
             }
@@ -487,7 +624,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     /**
     *   Verify if the inputs are not null.
     */
-    public void verifyInputExistence(   File courseInformationInput,
+    public void verifyInputExistence(   EvolutionState state,
+                                        final Parameter base,
+                                        File courseInformationInput,
                                         File intelectualAvailableInput,
                                         File dayPeriodAvailableInput,
                                         File studentInformationInput)
@@ -558,7 +697,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     /**
     *   Print in the console the lines of the input.
     */
-    public void printInputLines(Vector<String> lines, String type) {
+    public void printInputLines(Vector<String> lines, String type, EvolutionState state) {
 
         System.out.println("\n------------"+ type +"---------------");
 

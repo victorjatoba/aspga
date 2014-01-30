@@ -63,7 +63,7 @@ public class DayPlanGene extends Gene {
 
         //printInputLines(courseInformationVector, "CourseInformation");
 
-        this.subjects = fillSubjects(courseInformationVector);
+        this.subjects = fillSubjects(courseInformationVector, state);
 
         this.morning = new ArrayList<SubjectWorkload>();
         this.afternoon = new ArrayList<SubjectWorkload>();
@@ -320,6 +320,14 @@ public class DayPlanGene extends Gene {
 
         randomSubjectWorkload = period.get(state.random[thread].nextInt(period.size()));
         int workloadToBeChanged = getWorkloadDifferentOf(randomSubjectWorkload.getWorkload(), state, thread);
+
+/*        int count = 0;
+        while(workloadExceeds(period, workloadToBeChanged) && count < 5) {
+            count++;
+            workloadToBeChanged = getWorkloadDifferentOf(randomSubjectWorkload.getWorkload(), state, thread);
+        }
+        if (count >= 5) {
+*/
         if (!workloadExceeds(period, workloadToBeChanged)) {
             randomSubjectWorkload.setWorkload(workloadToBeChanged);
             //String s = randomSubjectWorkload.getSubject().getName(); s += "[M]"; randomSubjectWorkload.getSubject().setName(s);
@@ -536,28 +544,28 @@ public class DayPlanGene extends Gene {
     	return printGeneToStringForHumans();
     }
 
-   	/**
-    * Fill the Subjects with the input file
+   	   /**
+    * Fill the Subjects with the input file.
     *
-    * @param  subjectsIn
-    * @return <code>ArrayList<Subject></code> all input subjects.
+    * @param  subjectsIn [description]
+    * @param  state      [description]
     *
-    * @see {@link java.util.ArrayList}
+    * @return            the list of subjects standardized.
     */
-    public ArrayList<Subject> fillSubjects(Vector<String> subjectsIn) {
+    public ArrayList<Subject> fillSubjects(Vector<String> subjectsIn, EvolutionState state) {
         ArrayList<Subject> subjects = new ArrayList<Subject>();
 
         if (subjectsIn != null) {
-        	int i = 0;
+            int i = 0;
             for (String line: subjectsIn) {
                 String[] subjectDificulty = line.split(" ");
 
                 Subject subject = new Subject();
                 subject.setName(subjectDificulty[0]);
                 char dificultyChar = subjectDificulty[1].charAt(0);
-                int dificulty = Character.getNumericValue(dificultyChar);
+                //int dificulty = Character.getNumericValue(dificultyChar);
                 //int dificulty = dificultyChar - '0';
-                subject.setDificulty(dificulty);
+                subject.setDificulty(dificultyChar);
                 subject.setId(i++);
                 subjects.add(subject);
             }
