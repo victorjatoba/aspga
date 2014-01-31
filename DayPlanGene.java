@@ -24,7 +24,7 @@ import java.io.InputStreamReader;
 import java.util.Random;
 
 /**
- * DayPlanIndividual.java
+ * DayPlanGene.java
  *
  * Modified: Thu Nov 26 02:29 2013
  * @author Victor Jatoba

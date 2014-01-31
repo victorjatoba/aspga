@@ -12,7 +12,7 @@ import ec.EvolutionState;
 import ec.util.*;
 
 /**
- * DayPlanIndividual.java
+ * DayPlanGeneVectorIndividual.java
  *
  * Modified: Thu Nov 26 02:29 2013
  * @author Victor Jatoba

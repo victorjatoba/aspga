@@ -62,7 +62,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
     public static final char HARD =     'H';
     public static final char EASY =     'E';
-    public static final char NONE_OF_THE_OPTIONS =     'N';
+
+    public static final char NONE =     'N';
 
     ArrayList<Subject> subjects;
     Student student;
@@ -153,11 +154,11 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *          <code>false</code>  otherwise.
     */
     public float toStudyGradually(GeneVectorIndividual individual) {
+        int acumulativeValue = 0;
         int qtdPerids = (int)individual.size();
-        //int qtdPerids = (qdtDays/3);
-        //qtdPerids += (qdtDays%3)/3;
 
         ArrayList<SubjectWorkload> allPeriods = new ArrayList<SubjectWorkload>();
+        ArrayList<SubjectWorkload> emptyPeriod;
         
         for (int i = 0; i < qtdPerids; i++) {
             DayPlanGene gene = (DayPlanGene) individual.genome[i];
@@ -165,25 +166,39 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             allPeriods.addAll(gene.getMorning());
             allPeriods.addAll(gene.getAfternoon());
             allPeriods.addAll(gene.getNight());
+
+            //when find a empty period, put a simbolic period.
+/*            Subject subject = new Subject();
+            subject.setDificulty(NONE);
+            emptyPeriod = new ArrayList<SubjectWorkload>();
+            SubjectWorkload sw = new SubjectWorkload();
+            sw.setSubject(subject);
+            emptyPeriod.add(sw);
+            allPeriods.addAll(emptyPeriod);
+*/
         }
 
-        int countInit   = 0;
-        int countFinal  = qtdPerids;
-        int countMedium = countSubjectsDifficultyBetween(allPeriods, countInit, countFinal, MEDIUM);
+        System.out.println(qtdPerids +" "+allPeriods.size()/3);
+        qtdPerids = allPeriods.size()/3;
+        if (qtdPerids != 0) {
 
-        countInit   = qtdPerids;
-        countFinal  = qtdPerids*2;
-        int countHard   = countSubjectsDifficultyBetween(allPeriods, countInit, countFinal, HARD);
+            int countInit   = 0;
+            int countFinal  = qtdPerids;
+            int countMedium = countSubjectsDifficultyBetween(allPeriods, countInit, countFinal, MEDIUM);
 
-        countInit   = qtdPerids*2;
-        countFinal  = qtdPerids*3;
-        int countEasy   = countSubjectsDifficultyBetween(allPeriods, countInit, countFinal, EASY);
+            countInit   = qtdPerids;
+            countFinal  = qtdPerids*2;
+            int countHard   = countSubjectsDifficultyBetween(allPeriods, countInit, countFinal, HARD);
 
-        int acumulativeValue = 0;
+            countInit   = qtdPerids*2;
+            countFinal  = qtdPerids*3;
+            int countEasy   = countSubjectsDifficultyBetween(allPeriods, countInit, countFinal, EASY);
 
-        acumulativeValue += countAcumulativeValueByDifficulty(countMedium, qtdPerids);
-        acumulativeValue += countAcumulativeValueByDifficulty(countHard, qtdPerids);
-        acumulativeValue += countAcumulativeValueByDifficulty(countEasy,  qtdPerids);
+
+            acumulativeValue += countAcumulativeValueByDifficulty(countMedium, qtdPerids);
+            acumulativeValue += countAcumulativeValueByDifficulty(countHard, qtdPerids);
+            acumulativeValue += countAcumulativeValueByDifficulty(countEasy,  qtdPerids);
+        }
 
         return acumulativeValue/3;
     }
@@ -226,6 +241,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         int countDifficulty = 0;
 
         for (int i = init; i < end; i++) {
+            //System.out.println(allPeriods.get(i).getSubject().getDificulty() + " i: "+ i + " end: "+ end);
             if(allPeriods.get(i).getSubject().getDificulty() == difficultyType) {
                 countDifficulty++;
             }
@@ -312,7 +328,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         }
         maxDif = Math.max(Math.max(hardSum,mediumSum),easySum);
 
-        maxChar = NONE_OF_THE_OPTIONS;
+        maxChar = NONE;
         if (maxDif == hardSum) {
             maxChar = HARD;
         } else if (maxDif == mediumSum) {
