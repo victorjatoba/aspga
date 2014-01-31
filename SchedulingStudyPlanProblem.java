@@ -124,23 +124,114 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             /// ...the fitness...
             fitnessValue,
             ///... is the individual ideal?  Indicate here...
-            (fitnessValue == 170.0f));
+            (fitnessValue == 100.0f));
 
         individual.evaluated = true;
     }
 
     public float calculateFitnessValue(GeneVectorIndividual individual) {
-
-/*        ((acepts*100)/qtdFixedConstraints) + ((acepts*100)/qtdFixedConstraints)
-        (float)(((double)sum)/ind2.genome.length)
-*/
         //float fitness = subjectInInappropriatePeriod();
-        float inappropriatePeriod = subjectInInappropriatePeriod(individual);
-        float hard = hardSubjectInEasyPeriod(individual);
+        //float inappropriatePeriod = subjectInInappropriatePeriod(individual);
+        //float hard = hardSubjectInEasyPeriod(individual);
         //System.out.println("fits: " + inappropriatePeriod + " " + hard);
-        float fitness = inappropriatePeriod + (hard-30);
+        //float fitness = inappropriatePeriod + (hard-30);
         //float fitness = maxSixHoursPerPeriod(individual);
+        float fitness = toStudyGradually(individual);
         return fitness;
+    }
+
+    /**
+    * Check if the study plan have grow-up learn. To do this,
+    * verify the quantity of the medium difficulty subjects exist
+    * in the begin of the plan. After verify the hard and finally
+    * the easy difficulty subjects.Then placing one percent that 
+    * depends the quantity it was found.
+    *
+    * Classification: Fixed/Hard Constraint.
+    *
+    * @return  <code>true</code>   if the constraint was satisfied.
+    *          <code>false</code>  otherwise.
+    */
+    public float toStudyGradually(GeneVectorIndividual individual) {
+        int qtdPerids = (int)individual.size();
+        //int qtdPerids = (qdtDays/3);
+        //qtdPerids += (qdtDays%3)/3;
+
+        ArrayList<SubjectWorkload> allPeriods = new ArrayList<SubjectWorkload>();
+        
+        for (int i = 0; i < qtdPerids; i++) {
+            DayPlanGene gene = (DayPlanGene) individual.genome[i];
+
+            allPeriods.addAll(gene.getMorning());
+            allPeriods.addAll(gene.getAfternoon());
+            allPeriods.addAll(gene.getNight());
+        }
+
+        int countInit   = 0;
+        int countFinal  = qtdPerids;
+        int countMedium = countSubjectsDifficultyBetween(allPeriods, countInit, countFinal, MEDIUM);
+
+        countInit   = qtdPerids;
+        countFinal  = qtdPerids*2;
+        int countHard   = countSubjectsDifficultyBetween(allPeriods, countInit, countFinal, HARD);
+
+        countInit   = qtdPerids*2;
+        countFinal  = qtdPerids*3;
+        int countEasy   = countSubjectsDifficultyBetween(allPeriods, countInit, countFinal, EASY);
+
+        int acumulativeValue = 0;
+
+        acumulativeValue += countAcumulativeValueByDifficulty(countMedium, qtdPerids);
+        acumulativeValue += countAcumulativeValueByDifficulty(countHard, qtdPerids);
+        acumulativeValue += countAcumulativeValueByDifficulty(countEasy,  qtdPerids);
+
+        return acumulativeValue/3;
+    }
+
+    /**
+     * Search if the amountFound is the same of the total or 
+     * is the majority.
+     * 
+     * @param  amountFound  the amount to be compair.
+     * @param  total        the total to be compair.
+     * 
+     * @return  100     if is the same of the total.
+     *          50      if is greater than the half of the total.
+     *          0       otherwise.
+     */
+    public int countAcumulativeValueByDifficulty(int amountFound, int total) {
+        int acumulativeValue = 0;
+
+        if (amountFound == total) {
+            acumulativeValue = 100;
+        } else if (amountFound > total/2) {
+            acumulativeValue = 50;
+        }
+
+        return acumulativeValue;
+    }
+
+    /**
+     * Responsible to count the number of difficulty type
+     * exist in the array of the subjects.
+     * 
+     * @param  allPeriods       the periods to be counted.
+     * @param  init             the number who you want to begin in the array.
+     * @param  end              the number that end the array.
+     * @param  difficultyType   the type to be compared.
+     * 
+     * @return the number of difficulty type that allPeriods contain.
+     */
+    public int countSubjectsDifficultyBetween(ArrayList<SubjectWorkload> allPeriods, int init, int end, char difficultyType) {
+        int countDifficulty = 0;
+
+        for (int i = init; i < end; i++) {
+            if(allPeriods.get(i).getSubject().getDificulty() == difficultyType) {
+                countDifficulty++;
+            }
+        }
+
+        return countDifficulty;
     }
 
     /**
@@ -381,17 +472,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     */
     public void notCostAllTimeInTheSameSubject() {
 
-    }
-
-    /**
-    * Check if the study plan have grow-up learn.
-    *
-    * Classification: Fixed/Hard Constraint.
-    *
-    * @return  <code>true</code>   if the constraint was satisfied.
-    *          <code>false</code>  otherwise.
-    */
-    public void toStudyGradually() {
     }
 
     /**
