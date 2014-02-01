@@ -130,14 +130,22 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         individual.evaluated = true;
     }
 
+    /**
+     * Responsible for calculate the fitness value.
+     *
+     * @param  individual the individual to be calculated.
+     *
+     * @return <code>float</code>   the fitness value.
+     */
     public float calculateFitnessValue(GeneVectorIndividual individual) {
         //float fitness = subjectInInappropriatePeriod();
         //float inappropriatePeriod = subjectInInappropriatePeriod(individual);
-        //float hard = hardSubjectInEasyPeriod(individual);
-        //System.out.println("fits: " + inappropriatePeriod + " " + hard);
+        float hard = hardSubjectInEasyPeriod(individual);
         //float fitness = inappropriatePeriod + (hard-30);
         //float fitness = maxSixHoursPerPeriod(individual);
-        float fitness = toStudyGradually(individual);
+        //float fitness = toStudyGradually(individual);
+        float fitness = hard;
+        //System.out.println("fits: " + inappropriatePeriod + " " + hard);
         return fitness;
     }
 
@@ -145,7 +153,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     * Check if the study plan have grow-up learn. To do this,
     * verify the quantity of the medium difficulty subjects exist
     * in the begin of the plan. After verify the hard and finally
-    * the easy difficulty subjects.Then placing one percent that 
+    * the easy difficulty subjects.Then placing one percent that
     * depends the quantity it was found.
     *
     * Classification: Fixed/Hard Constraint.
@@ -159,7 +167,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
         ArrayList<SubjectWorkload> allPeriods = new ArrayList<SubjectWorkload>();
         ArrayList<SubjectWorkload> emptyPeriod;
-        
+
         for (int i = 0; i < qtdPerids; i++) {
             DayPlanGene gene = (DayPlanGene) individual.genome[i];
 
@@ -178,7 +186,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 */
         }
 
-        System.out.println(qtdPerids +" "+allPeriods.size()/3);
+        //System.out.println(qtdPerids +" "+allPeriods.size()/3);
         qtdPerids = allPeriods.size()/3;
         if (qtdPerids != 0) {
 
@@ -204,12 +212,12 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     }
 
     /**
-     * Search if the amountFound is the same of the total or 
+     * Search if the amountFound is the same of the total or
      * is the majority.
-     * 
+     *
      * @param  amountFound  the amount to be compair.
      * @param  total        the total to be compair.
-     * 
+     *
      * @return  100     if is the same of the total.
      *          50      if is greater than the half of the total.
      *          0       otherwise.
@@ -229,12 +237,12 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     /**
      * Responsible to count the number of difficulty type
      * exist in the array of the subjects.
-     * 
+     *
      * @param  allPeriods       the periods to be counted.
      * @param  init             the number who you want to begin in the array.
      * @param  end              the number that end the array.
      * @param  difficultyType   the type to be compared.
-     * 
+     *
      * @return the number of difficulty type that allPeriods contain.
      */
     public int countSubjectsDifficultyBetween(ArrayList<SubjectWorkload> allPeriods, int init, int end, char difficultyType) {
@@ -255,11 +263,197 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     * have more intelectual facility for to learn.
     *
     * Classification: Hard Constraint.
-     * @param individual
     *
-    * @return  <code>true</code>   if the constraint was attended.
-    *          <code>false</code>  otherwise.
+    * @param individual
+    *
+    * @return  <code>float</code>   the fitness value for this constraint.
     */
+    public float hardSubjectInEasyPeriod(GeneVectorIndividual individual) {
+        long individualLength = individual.size();
+        int cycleIt = 0;
+        ArrayList<Period> studyCycle = this.intelectualAvailable.getStudyCycle();
+        int studyCycleSize = studyCycle.size();
+        int acumulativeValue = 0;
+        int qtdPeriodsAvailable = 0;
+
+        char periodAvailable;
+
+        ArrayList<SubjectWorkload> subjectWorkloads;
+        for (int i = 0; i < individualLength; i++) {
+            DayPlanGene gene = (DayPlanGene) individual.genome[i];
+            Period period = studyCycle.get(cycleIt);
+
+            //Morning
+            subjectWorkloads = gene.getMorning();
+            periodAvailable = period.getMorning();
+            if (!subjectWorkloads.isEmpty()) {
+                qtdPeriodsAvailable++;
+                acumulativeValue += getPeriodAcumulativeValue(periodAvailable, subjectWorkloads);
+            }
+
+            //Afternoon
+            subjectWorkloads = gene.getAfternoon();
+            periodAvailable = period.getAfternoon();
+            if (!subjectWorkloads.isEmpty()) {
+                qtdPeriodsAvailable++;
+                acumulativeValue += getPeriodAcumulativeValue(periodAvailable, subjectWorkloads);
+            }
+
+            //Night
+            subjectWorkloads = gene.getNight();
+            periodAvailable = period.getNight();
+            if (!subjectWorkloads.isEmpty()) {
+                qtdPeriodsAvailable++;
+                acumulativeValue += getPeriodAcumulativeValue(periodAvailable, subjectWorkloads);
+            }
+
+            cycleIt++;
+            if(cycleIt == studyCycleSize) {
+                cycleIt = 0;
+            }
+        }
+
+        float total = 0; //exist one individual that don't have genes in their genome.
+        if (qtdPeriodsAvailable != 0) {
+            total = acumulativeValue / qtdPeriodsAvailable;
+        }
+        //System.out.println("acumulativeValue: " + acumulativeValue + " qtdPeriodsAvailable: " + qtdPeriodsAvailable + " Total: " + total);
+
+        return total;
+    }
+
+    /**
+     * Get the acumulativeValue of the period passed by param.
+     *
+     * @param  periodAvailable      the period (M, A, N).
+     * @param  subjectWorkloads     the set of subjectWorkloads.
+     *
+     * @return  <code>int</code>    the acumulativeValue.
+     */
+    public int getPeriodAcumulativeValue(char periodAvailable, ArrayList<SubjectWorkload> subjectWorkloads) {
+        int dificultySum = 0;
+        for (SubjectWorkload sw: subjectWorkloads) {
+            //System.out.println(sw.getSubject().getName());
+            dificultySum += sw.getSubject().getDificulty();
+        }
+        float dificultyAverage = dificultySum / subjectWorkloads.size();
+
+        int acumulativeValue = getAcumulativeValueByDificulty(periodAvailable, dificultyAverage, subjectWorkloads);
+
+        return acumulativeValue;
+    }
+
+    /**
+     * Return the acumulativeValue from the period using the
+     * table classification below.
+     *
+     * The subject classification by difficulty:
+     *      00 <= n < 20      Easy
+     *      20 <= n < 40      Easy/Medium
+     *      40 <= n < 60      Medium
+     *      60 <= n < 80      Hard/Medium
+     *      80 <= n < 100     Hard
+     *
+     * The difficulty classification as regard as period of the day.
+     * If period of the day is...
+     *     GOOD:
+     *          00 <= n < 20      0 (the acumulative value)
+     *          20 <= n < 40      25
+     *          40 <= n < 60      50
+     *          60 <= n < 80      75
+     *          80 <= n < 100     100
+     *
+     *     MEDIUM:
+     *          00 <= n < 20      25
+     *          20 <= n < 40      75
+     *          40 <= n < 60      100
+     *          60 <= n < 80      75
+     *          80 <= n < 100     25
+     *
+     *     EASY:
+     *          00 <= n < 20      100
+     *          20 <= n < 40      75
+     *          40 <= n < 60      50
+     *          60 <= n < 80      25
+     *          80 <= n < 100     0
+     *
+     * @param  periodOfDificult     if is GOOD, MEDIUM or EASY.
+     * @param  dificultyAverage     the difficulty average of the all subjects.
+     *
+     * @return  the acumulative value as regard as table classification above.
+     *
+     * @see {@link Period}
+     */
+    public int getAcumulativeValueByDificulty(char periodAvailable, float dificultyAverage, ArrayList<SubjectWorkload> subjectWorkloads) {
+        int acumulativeValue = 0;
+
+        if (periodAvailable == GOOD) {
+            if (dificultyAverage >= 80f) {
+                acumulativeValue = 100;
+            } else if (dificultyAverage >= 60f) {
+                acumulativeValue = 75;
+            } else if (dificultyAverage >= 40f) {
+                acumulativeValue = 50;
+            } else if (dificultyAverage >= 20f) {
+                acumulativeValue = 25;
+            }
+        } else if (periodAvailable == MEDIUM) {
+            if (!isFakeMedium(subjectWorkloads)) {
+                if (dificultyAverage >= 80f) {
+                    acumulativeValue = 25;
+                } else if (dificultyAverage >= 60f) {
+                    acumulativeValue = 75;
+                } else if (dificultyAverage >= 40f) {
+                    acumulativeValue = 100;
+                } else if (dificultyAverage >= 20f) {
+                    acumulativeValue = 75;
+                } else {
+                    acumulativeValue = 25;
+                }
+            }
+        } else {
+            acumulativeValue = 100;
+            if (dificultyAverage >= 80f) {
+                acumulativeValue = 0;
+            } else if (dificultyAverage >= 60f) {
+                acumulativeValue = 25;
+            } else if (dificultyAverage >= 40f) {
+                acumulativeValue = 50;
+            } else if (dificultyAverage >= 20f) {
+                acumulativeValue = 75;
+            }
+        }
+
+        //System.out.println("" + periodAvailable + " " + dificultyAverage + " " + acumulativeValue);
+        return acumulativeValue;
+    }
+
+    /**
+     * Search if the period contains subjects that
+     * have distinct dificulty. In other words,
+     * if exist subjets hard and easy in the same
+     * period.
+     *
+     * @param  subjectWorkloads     the period.
+     *
+     * @return  <code>true</code>   if exist.
+     *          <code>false</code>  otherwise.
+     */
+    public Boolean isFakeMedium(ArrayList<SubjectWorkload> subjectWorkloads) {
+        Boolean isFake = Boolean.FALSE;
+
+        for (SubjectWorkload sw: subjectWorkloads) {
+            int dificulty = sw.getSubject().getDificulty();
+            if (dificulty < 20 || dificulty >= 80) {
+                isFake = Boolean.TRUE;
+                break;
+            }
+        }
+
+        return isFake;
+    }
+
+/*
     public float hardSubjectInEasyPeriod(GeneVectorIndividual individual) {
         long individualLength = individual.size();
         int cycleIt = 0;
@@ -340,82 +534,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         return maxChar;
     }
 
-/*
-    public float hardSubjectInEasyPeriod(GeneVectorIndividual individual) {
-        long individualLength = individual.size();
-        int cycleIt = 0;
-        ArrayList<Period> studyCycle = this.intelectualAvailable.getStudyCycle();
-        int acumulativeValue = 0;
-        int dificultySum = 0;
-        int qtdPeriodsAvailable = 0;
-
-        float dificultyAverage;
-        //dayPeriodAvailable;
-
-        for (int i = 0; i < individualLength; i++) {
-            DayPlanGene gene = (DayPlanGene) individual.genome[i];
-            Period period = studyCycle.get(cycleIt);
-
-            //Morning
-            if (!gene.getMorning().isEmpty()) {
-                dificultySum = 0;
-                qtdPeriodsAvailable++;
-                for (SubjectWorkload sw: gene.getMorning()) {
-                    dificultySum += sw.getSubject().getDificulty();
-                }
-                dificultyAverage = dificultySum / gene.getMorning().size();
-
-                acumulativeValue += getAcumulativeValueByDificulty(period.getMorning(), dificultyAverage);
-            }
-
-            //Afternoon
-            if (!gene.getAfternoon().isEmpty()) {
-                dificultySum = 0;
-                qtdPeriodsAvailable++;
-                for (SubjectWorkload sw: gene.getAfternoon()) {
-                    dificultySum += sw.getSubject().getDificulty();
-                }
-                dificultyAverage = dificultySum / gene.getAfternoon().size();
-
-                acumulativeValue += getAcumulativeValueByDificulty(period.getAfternoon(), dificultyAverage);
-            }
-
-            //Night
-            if (!gene.getNight().isEmpty()) {
-                dificultySum = 0;
-                qtdPeriodsAvailable++;
-                for (SubjectWorkload sw: gene.getNight()) {
-                    dificultySum += sw.getSubject().getDificulty();
-                }
-                dificultyAverage = dificultySum / gene.getNight().size();
-
-                acumulativeValue += getAcumulativeValueByDificulty(period.getNight(), dificultyAverage);
-            }
-
-        }
-
-        float total = acumulativeValue / qtdPeriodsAvailable;
-        //System.out.println("acumulativeValue: " + acumulativeValue + " qtdPeriodsAvailable: " + qtdPeriodsAvailable + " Total: " + total);
-
-        return total;
-    }
-*/
-    /**
-     * Return the acumulativeValue from the period using the
-     * table classification below.
-     *
-     * Subjects difficulty table:
-     *             from 0 to 1,66 Easy.
-     *             from 1,67 to 3,33 Median.
-     *             From 3,34 to 5 Hard
-     *
-     * @param  periodOfDificult [description]
-     * @param  maxDificulty [description]
-     *
-     * @return                  [description]
-     *
-     * @see {@link Period}
-     */
     public int getAcumulativeValueByDificulty(char periodAvailable, char maxDificulty) {
         int acumulativeValue = 0;
 
@@ -446,38 +564,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
         return acumulativeValue;
     }
-/*
-    public int getAcumulativeValueByDificulty(char periodAvailable, float dificultyAverage) {
-        int acumulativeValue = 0;
-
-        if (dificultyAverage > 3.33f) {
-            //Hard subjects
-            if (periodAvailable == GOOD) {
-                acumulativeValue = 100;
-            } else if (periodAvailable == MEDIUM) {
-                acumulativeValue = 50;
-            }
-        } else if (dificultyAverage > 1.66f) {
-            //Median subjects
-            if (periodAvailable == GOOD) {
-                acumulativeValue = 50;
-            } else if (periodAvailable == MEDIUM) {
-                acumulativeValue = 100;
-            } else {
-                acumulativeValue = 50;
-            }
-        } else {
-            // Easy subjects
-            if (periodAvailable == MEDIUM) {
-                acumulativeValue = 50;
-            } else if (periodAvailable == BAD) {
-                acumulativeValue = 100;
-            }
-        }
-
-        return acumulativeValue;
-    }
 */
+
     /**
     * Check if the subjects are studies in one time only.
     *
@@ -486,7 +574,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     * @return  <code>true</code>   if the constraint was satisfied.
     *          <code>false</code>  otherwise.
     */
-    public void notCostAllTimeInTheSameSubject() {
+    public void notWasteAllTimeInTheSameSubject() {
 
     }
 
@@ -703,10 +791,12 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
                 Subject subject = new Subject();
                 subject.setName(subjectDificulty[0]);
-                char dificultyChar = subjectDificulty[1].charAt(0);
+                String dificultyStr = subjectDificulty[1];
+                int dificulty = Integer.parseInt(dificultyStr);
+
                 //int dificulty = Character.getNumericValue(dificultyChar);
                 //int dificulty = dificultyChar - '0';
-                subject.setDificulty(dificultyChar);
+                subject.setDificulty(dificulty);
                 subject.setId(i++);
                 subjects.add(subject);
             }

@@ -544,7 +544,7 @@ public class DayPlanGene extends Gene {
     	return printGeneToStringForHumans();
     }
 
-   	   /**
+   	/**
     * Fill the Subjects with the input file.
     *
     * @param  subjectsIn [description]
@@ -562,10 +562,12 @@ public class DayPlanGene extends Gene {
 
                 Subject subject = new Subject();
                 subject.setName(subjectDificulty[0]);
-                char dificultyChar = subjectDificulty[1].charAt(0);
+                String dificultyStr = subjectDificulty[1];
+                int dificulty = Integer.parseInt(dificultyStr);
+
                 //int dificulty = Character.getNumericValue(dificultyChar);
                 //int dificulty = dificultyChar - '0';
-                subject.setDificulty(dificultyChar);
+                subject.setDificulty(dificulty);
                 subject.setId(i++);
                 subjects.add(subject);
             }

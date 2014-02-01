@@ -15,3 +15,14 @@
 	G = Good
 	M = Median
 	B = Bad
+
+# CourseInformation.in
+
+	Informing the subject and your difficulty from 0 to 100. 0 don't have difficulty, 100 biggest difficulty.
+	Classification:
+
+	00 <= n < 20      Easy
+	20 <= n < 40      Easy/Medium
+	40 <= n < 60      Medium
+	60 <= n < 80      Hard/Medium
+	80 <= n < 100     Hard

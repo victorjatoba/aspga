@@ -35,12 +35,12 @@ pop.subpop.0.species.fitness 	= ec.simple.SimpleFitness
 pop.subpop.0.species.ind		= ec.app.aspga.DayPlanGeneVectorIndividual
 pop.subpop.0.species.gene 		= ec.app.aspga.DayPlanGene
 
-pop.subpop.0.species.genome-size	= 4
+pop.subpop.0.species.genome-size	= 7
 #below is the per-gene crossover probability, not the probability that the entire individual will be crossed over.
 pop.subpop.0.species.crossover-prob	= 0.25
 base.likelihood = 0.8
 #each gene is only mutated with a certain probability
-pop.subpop.0.species.mutation-prob	= 0.8
+pop.subpop.0.species.mutation-prob	= 0.2
 
 # Place on one line
 pop.subpop.0.species.pipe					= ec.vector.breed.VectorMutationPipeline
