@@ -18,7 +18,7 @@ public class Subject
 {
 	int id;
 	String name;
-	int dificulty;
+	int dificulty; //from 1 to 100
 //	private int importance;
 
 	public String getName()

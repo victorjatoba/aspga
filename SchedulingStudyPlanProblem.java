@@ -140,11 +140,11 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     public float calculateFitnessValue(GeneVectorIndividual individual) {
         //float fitness = subjectInInappropriatePeriod();
         //float inappropriatePeriod = subjectInInappropriatePeriod(individual);
-        float hard = hardSubjectInEasyPeriod(individual);
+        //float hard = hardSubjectInEasyPeriod(individual);
         //float fitness = inappropriatePeriod + (hard-30);
         //float fitness = maxSixHoursPerPeriod(individual);
-        //float fitness = toStudyGradually(individual);
-        float fitness = hard;
+        float gradually = toStudyGradually(individual);
+        float fitness = gradually;
         //System.out.println("fits: " + inappropriatePeriod + " " + hard);
         return fitness;
     }
@@ -165,50 +165,133 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         int acumulativeValue = 0;
         int qtdPerids = (int)individual.size();
 
-        ArrayList<SubjectWorkload> allPeriods = new ArrayList<SubjectWorkload>();
-        ArrayList<SubjectWorkload> emptyPeriod;
+        ArrayList<SubjectWorkload> allSubjWorkloads = new ArrayList<SubjectWorkload>();
+        ArrayList<ArrayList<SubjectWorkload> > allPeriods = new ArrayList<ArrayList<SubjectWorkload> >();
+        ArrayList<SubjectWorkload> subjectWorkloads;
+        //ArrayList<SubjectWorkload> emptyPeriod;
+
+        Vector<Integer> periodsEmpty = new Vector<Integer>();
+
+        for (int i = 0; i <  qtdPerids*3; i++) {
+            periodsEmpty.add(0);
+        }
+
 
         for (int i = 0; i < qtdPerids; i++) {
             DayPlanGene gene = (DayPlanGene) individual.genome[i];
 
-            allPeriods.addAll(gene.getMorning());
-            allPeriods.addAll(gene.getAfternoon());
-            allPeriods.addAll(gene.getNight());
+            subjectWorkloads = gene.getMorning();
+            if (!subjectWorkloads.isEmpty()) {
+                allPeriods.add(subjectWorkloads);
+                allSubjWorkloads.addAll(subjectWorkloads);
 
-            //when find a empty period, put a simbolic period.
-/*            Subject subject = new Subject();
-            subject.setDificulty(NONE);
-            emptyPeriod = new ArrayList<SubjectWorkload>();
-            SubjectWorkload sw = new SubjectWorkload();
-            sw.setSubject(subject);
-            emptyPeriod.add(sw);
-            allPeriods.addAll(emptyPeriod);
-*/
+            } else {
+                int pos = i*3;
+                periodsEmpty.set(pos, 1);
+            }
+
+            subjectWorkloads = gene.getAfternoon();
+            if (!subjectWorkloads.isEmpty()) {
+                allPeriods.add(subjectWorkloads);
+                allSubjWorkloads.addAll(subjectWorkloads);
+            } else {
+                int pos = (i*3)+1;
+                periodsEmpty.set(pos, 1);
+            }
+
+            subjectWorkloads = gene.getNight();
+            if (!subjectWorkloads.isEmpty()) {
+                allPeriods.add(subjectWorkloads);
+                allSubjWorkloads.addAll(subjectWorkloads);
+            } else {
+                int pos = (i*3)+2;
+                periodsEmpty.set(pos, 1);
+            }
         }
 
         //System.out.println(qtdPerids +" "+allPeriods.size()/3);
-        qtdPerids = allPeriods.size()/3;
-        if (qtdPerids != 0) {
+        //qtdPerids = allPeriods.size()/3;
+        if (allPeriods.size() != 0) {
+            int amountSWByPeriod = 0;
 
             int countInit   = 0;
-            int countFinal  = qtdPerids;
+            int countFinal  = qtdPerids - countEmptyByPeriod(MEDIUM, periodsEmpty);
             int countMedium = countSubjectsDifficultyBetween(allPeriods, countInit, countFinal, MEDIUM);
+            amountSWByPeriod = countSWByPeriod(allPeriods, countInit, countFinal);
+            acumulativeValue += countAcumulativeValueByDifficulty(countMedium, amountSWByPeriod);
 
-            countInit   = qtdPerids;
-            countFinal  = qtdPerids*2;
+            countInit   = countFinal;
+            countFinal  += qtdPerids - countEmptyByPeriod(HARD, periodsEmpty);
             int countHard   = countSubjectsDifficultyBetween(allPeriods, countInit, countFinal, HARD);
+            amountSWByPeriod = countSWByPeriod(allPeriods, countInit, countFinal);
+            acumulativeValue += countAcumulativeValueByDifficulty(countHard, amountSWByPeriod);
 
-            countInit   = qtdPerids*2;
-            countFinal  = qtdPerids*3;
+            countInit   = countFinal;
+            countFinal  += qtdPerids - countEmptyByPeriod(EASY, periodsEmpty);
             int countEasy   = countSubjectsDifficultyBetween(allPeriods, countInit, countFinal, EASY);
-
-
-            acumulativeValue += countAcumulativeValueByDifficulty(countMedium, qtdPerids);
-            acumulativeValue += countAcumulativeValueByDifficulty(countHard, qtdPerids);
-            acumulativeValue += countAcumulativeValueByDifficulty(countEasy,  qtdPerids);
+            amountSWByPeriod = countSWByPeriod(allPeriods, countInit, countFinal);
+            acumulativeValue += countAcumulativeValueByDifficulty(countEasy,  amountSWByPeriod);
         }
 
+        //System.out.println(((float)acumulativeValue/3f));
         return acumulativeValue/3;
+    }
+
+    /**
+     * Count a number of SubjectWorkloads (SW) that exist
+     * in the Array of the periods (Array of SW) by init and final indices.
+     *
+     * @param  allPeriods       the Array of periods to be counted.
+     * @param  init             the first position.
+     * @param  end              the last position.
+     *
+     * @return the number of SW found.
+     */
+    public int countSWByPeriod(ArrayList<ArrayList<SubjectWorkload> > allPeriods, int init, int end) {
+        int amountSWByPeriod = 0;
+        for (int i = init; i < end; i++) {
+            amountSWByPeriod += allPeriods.get(i).size();
+        }
+
+        return amountSWByPeriod;
+    }
+
+    /**
+     * Count the number of 1 exist in the especific period
+     * of the dificulty.
+     *
+     * Obs.: 1 signific that exist one period of the day empty.
+     * In the other words, this period not contains SubjectWorkloads.
+     *
+     * @param  period           {MEDIUM, HARD or EASY}
+     * @param  periodsEmpty     the vector of empty periods.
+     *
+     * @return              the number of empty periods.
+     */
+    public int countEmptyByPeriod(char period, Vector<Integer> periodsEmpty) {
+        int posInit, posFinal;
+        int qtdPerids = periodsEmpty.size()/3;
+
+        if (period == MEDIUM) {
+            posInit = 0;
+            posFinal = qtdPerids;
+        } else if (period == HARD) {
+            posInit = qtdPerids;
+            posFinal = qtdPerids*2;
+        } else {
+            posInit = qtdPerids*2;
+            posFinal = qtdPerids*3;
+        }
+
+        int countEmpty = 0;
+        for (int i = posInit; i < posFinal; i++) {
+            if (periodsEmpty.get(i) == 1) {
+                countEmpty++;
+            }
+        }
+
+        //System.out.println("period " + period + " countEmpty: " + countEmpty + " i " + posInit + " f " + posFinal);
+        return countEmpty;
     }
 
     /**
@@ -219,43 +302,91 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @param  total        the total to be compair.
      *
      * @return  100     if is the same of the total.
+     *          75      if is greater than the third of the total.
      *          50      if is greater than the half of the total.
+     *          25      if is greater than the quarter of the total.
      *          0       otherwise.
      */
     public int countAcumulativeValueByDifficulty(int amountFound, int total) {
         int acumulativeValue = 0;
 
-        if (amountFound == total) {
-            acumulativeValue = 100;
-        } else if (amountFound > total/2) {
-            acumulativeValue = 50;
+        if (total != 0) {
+            float third = total * 0.75f;
+            float half = total * 0.5f;
+            float quarter = total * 0.25f;
+
+            if (amountFound == total) {
+                acumulativeValue = 100;
+            } else if (amountFound > third) {
+                acumulativeValue = 75;
+            } else if (amountFound >= half) {
+                acumulativeValue = 50;
+            } else if (amountFound > quarter) {
+                acumulativeValue = 25;
+            }
         }
 
+        //System.out.println("am: " + amountFound + " tl: " + total + " ac: " + acumulativeValue);
         return acumulativeValue;
     }
 
     /**
      * Responsible to count the number of difficulty type
-     * exist in the array of the subjects.
+     * that the array of the subjects contains from a especific
+     * period of index (from init position to end position).
      *
      * @param  allPeriods       the periods to be counted.
-     * @param  init             the number who you want to begin in the array.
-     * @param  end              the number that end the array.
+     * @param  init             the position of the first subjectWorkload.
+     * @param  end              the position of the last subjectWorkload.
      * @param  difficultyType   the type to be compared.
      *
      * @return the number of difficulty type that allPeriods contain.
      */
-    public int countSubjectsDifficultyBetween(ArrayList<SubjectWorkload> allPeriods, int init, int end, char difficultyType) {
+    public int countSubjectsDifficultyBetween(ArrayList<ArrayList<SubjectWorkload> > allPeriods, int init, int end, char difficultyType) {
         int countDifficulty = 0;
 
+        int a, b;
+        if (difficultyType == MEDIUM) {
+            a = 20;
+            b = 80;
+        } else if (difficultyType == HARD) {
+            a = 80;
+            b = 101;
+        } else {
+            a = 0;
+            b = 20;
+        }
+
         for (int i = init; i < end; i++) {
-            //System.out.println(allPeriods.get(i).getSubject().getDificulty() + " i: "+ i + " end: "+ end);
-            if(allPeriods.get(i).getSubject().getDificulty() == difficultyType) {
-                countDifficulty++;
+            for (SubjectWorkload sw: allPeriods.get(i)) {
+                if(isBetween(sw.getSubject().getDificulty(), a, b)) {
+                    //System.out.println("name: " + sw.getSubject().getName() + " dif: " + sw.getSubject().getDificulty());
+                    countDifficulty++;
+                }
             }
         }
 
+        //System.out.println("found: " + countDifficulty + "  i: " + init + " f: " + end);
         return countDifficulty;
+    }
+
+    /**
+     * verify if the first number is between the
+     * second (included) and third (exclude) number.
+     *
+     *
+     * @param  verify  the number to be verified.
+     * @param  a       from (included).
+     * @param  b       to (excluded).
+     *
+     * @return  <code>true</code>   if is between.
+     *          <code>false</code>  otherwise.
+     */
+    public Boolean isBetween(int verify, int a, int b) {
+        if (verify >= a && verify < b) {
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
     }
 
     /**
