@@ -138,13 +138,12 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @return <code>float</code>   the fitness value.
      */
     public float calculateFitnessValue(GeneVectorIndividual individual) {
-        //float fitness = subjectInInappropriatePeriod();
-        //float inappropriatePeriod = subjectInInappropriatePeriod(individual);
+        float inappropriatePeriod = subjectInInappropriatePeriod(individual);
         //float hard = hardSubjectInEasyPeriod(individual);
         //float fitness = inappropriatePeriod + (hard-30);
         //float fitness = maxSixHoursPerPeriod(individual);
-        float gradually = toStudyGradually(individual);
-        float fitness = gradually;
+        //float gradually = toStudyGradually(individual);
+        float fitness = inappropriatePeriod;
         //System.out.println("fits: " + inappropriatePeriod + " " + hard);
         return fitness;
     }
@@ -743,23 +742,17 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
             if (studyCycle.get(cycleIt).getMorning() == NOTHING) {
                 qtdNothingPeriods++;
-                if(gene.getMorning().isEmpty()) {
-                    acumulativeValue += 100;
-                }
+                acumulativeValue += getAcumulativeValueByNothingPeriod(gene.getMorning());
             }
 
             if (studyCycle.get(cycleIt).getAfternoon() == NOTHING) {
                 qtdNothingPeriods++;
-                if (gene.getAfternoon().isEmpty()) {
-                    acumulativeValue += 100;
-                }
+                acumulativeValue += getAcumulativeValueByNothingPeriod(gene.getAfternoon());
             }
 
             if (studyCycle.get(cycleIt).getNight() == NOTHING) {
                 qtdNothingPeriods++;
-                if (gene.getNight().isEmpty()) {
-                    acumulativeValue += 100;
-                }
+                acumulativeValue += getAcumulativeValueByNothingPeriod(gene.getNight());
             }
 
             cycleIt++;
@@ -773,6 +766,25 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         float total = acumulativeValue / qtdNothingPeriods;
 
         return total;
+    }
+
+    public int getAcumulativeValueByNothingPeriod(ArrayList<SubjectWorkload> period) {
+        int acumulativeValue = 0;
+
+        int total = period.size();
+
+        if(period.isEmpty()) {
+            acumulativeValue = 100;
+        } else if (total == 1) {
+            acumulativeValue = 75;
+        } else if (total == 2) {
+            acumulativeValue = 50;
+        } else if (total == 3) {
+            acumulativeValue = 25;
+        }
+
+        //System.out.println("am: " + amountFound + " tl: " + total + " ac: " + acumulativeValue);
+        return acumulativeValue;
     }
 
     /**
