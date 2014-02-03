@@ -82,27 +82,11 @@ public class DayPlanGene extends Gene {
         //System.out.println("maxSubjectsQuantity: " + maxSubjectsQuantity);
 
         for(int i = 0; i < maxSubjectsQuantity; i++) {
-/*
-            SubjectWorkload subjectWorkload = getNewSubjectWorkloadInstance(state, thread);
-
-            int periodOfTheDay = state.random[thread].nextInt(3); //random from 0 to 2
-            //Don't be permitted insert duplicated subjects
-            if(periodOfTheDay == 0 && !contens(morning, subjectWorkload)) {
-                morning.add(subjectWorkload);
-            } else if (periodOfTheDay == 1 && !contens(afternoon, subjectWorkload)) {
-                afternoon.add(subjectWorkload);
-            } else if(!contens(night, subjectWorkload)) {
-                night.add(subjectWorkload);
+            if(insertSubjectWorkload(state, thread)) {
+              insertSubjectWorkload(state, thread);
             }
-*/
-            insertSubjectWorkload(state, thread);
         }
-/*
-        ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
-        subjectWorkloads.addAll(morning);
-        subjectWorkloads.addAll(afternoon);
-        subjectWorkloads.addAll(night);
-*/
+
         //System.out.println(printGeneToStringForHumans());
     }
 

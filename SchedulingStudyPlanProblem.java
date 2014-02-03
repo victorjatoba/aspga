@@ -53,7 +53,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     public static final String P_STUDENTINFORMATION = "studentInformation";
 
     public static final char BIG =      'B';
-    public static final char SMAL =     'S';
+    public static final char SMALL =     'S';
     public static final char NOTHING =  'N';
 
     public static final char GOOD =     'G';
@@ -139,13 +139,14 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      */
     public float calculateFitnessValue(GeneVectorIndividual individual) {
         float inappropriatePeriod = subjectInInappropriatePeriod(individual);
-        //float hard = hardSubjectInEasyPeriod(individual);
-        //float fitness = inappropriatePeriod + (hard-30);
-        //float fitness = maxSixHoursPerPeriod(individual);
-        //float gradually = toStudyGradually(individual);
-        float fitness = inappropriatePeriod;
+        float hard = hardSubjectInEasyPeriod(individual);
+        //float maxSix = maxSixHoursPerPeriod(individual);
+        float gradually = toStudyGradually(individual);
+        //float fillPeriods = fillPeriodsAvailable(individual);
+
+        float fitness = inappropriatePeriod + (hard + (gradually));
         //System.out.println("fits: " + inappropriatePeriod + " " + hard);
-        return fitness;
+        return fitness / 3;
     }
 
     /**
@@ -233,7 +234,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         }
 
         //System.out.println(((float)acumulativeValue/3f));
-        return acumulativeValue/3;
+        return acumulativeValue/3f;
     }
 
     /**
@@ -443,9 +444,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             }
         }
 
-        float total = 0; //exist one individual that don't have genes in their genome.
+        float total = 0.0f; //exist one individual that don't have genes in their genome.
         if (qtdPeriodsAvailable != 0) {
-            total = acumulativeValue / qtdPeriodsAvailable;
+            total = (float)acumulativeValue / (float)qtdPeriodsAvailable;
         }
         //System.out.println("acumulativeValue: " + acumulativeValue + " qtdPeriodsAvailable: " + qtdPeriodsAvailable + " Total: " + total);
 
@@ -478,34 +479,34 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * table classification below.
      *
      * The subject classification by difficulty:
-     *      00 <= n < 20      Easy
-     *      20 <= n < 40      Easy/Medium
-     *      40 <= n < 60      Medium
-     *      60 <= n < 80      Hard/Medium
-     *      80 <= n < 100     Hard
+     *      00 >= n < 20      Easy
+     *      20 >= n < 40      Easy/Medium
+     *      40 >= n < 60      Medium
+     *      60 >= n < 80      Hard/Medium
+     *      80 >= n < 100     Hard
      *
      * The difficulty classification as regard as period of the day.
      * If period of the day is...
      *     GOOD:
-     *          00 <= n < 20      0 (the acumulative value)
-     *          20 <= n < 40      25
-     *          40 <= n < 60      50
-     *          60 <= n < 80      75
-     *          80 <= n < 100     100
+     *          00 >= n < 20      0 (the acumulative value)
+     *          20 >= n < 40      25
+     *          40 >= n < 60      50
+     *          60 >= n < 80      75
+     *          80 >= n < 100     100
      *
      *     MEDIUM:
-     *          00 <= n < 20      25
-     *          20 <= n < 40      75
-     *          40 <= n < 60      100
-     *          60 <= n < 80      75
-     *          80 <= n < 100     25
+     *          00 >= n < 20      25
+     *          20 >= n < 40      75
+     *          40 >= n < 60      100
+     *          60 >= n < 80      75
+     *          80 >= n < 100     25
      *
      *     EASY:
-     *          00 <= n < 20      100
-     *          20 <= n < 40      75
-     *          40 <= n < 60      50
-     *          60 <= n < 80      25
-     *          80 <= n < 100     0
+     *          00 >= n < 20      100
+     *          20 >= n < 40      75
+     *          40 >= n < 60      50
+     *          60 >= n < 80      25
+     *          80 >= n < 100     0
      *
      * @param  periodOfDificult     if is GOOD, MEDIUM or EASY.
      * @param  dificultyAverage     the difficulty average of the all subjects.
@@ -583,119 +584,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         return isFake;
     }
 
-/*
-    public float hardSubjectInEasyPeriod(GeneVectorIndividual individual) {
-        long individualLength = individual.size();
-        int cycleIt = 0;
-        ArrayList<Period> studyCycle = this.intelectualAvailable.getStudyCycle();
-        int acumulativeValue = 0;
-        int qtdPeriodsAvailable = 0;
-        char maxChar;
-        ArrayList<SubjectWorkload> genePeriod;
-        //dayPeriodAvailable;
-
-        for (int i = 0; i < individualLength; i++) {
-            DayPlanGene gene = (DayPlanGene) individual.genome[i];
-            Period period = studyCycle.get(cycleIt);
-
-            //Morning
-            genePeriod = gene.getMorning();
-            if (!genePeriod.isEmpty()) {
-                qtdPeriodsAvailable++;
-
-                maxChar = getMaxDificulty(genePeriod);
-                acumulativeValue += getAcumulativeValueByDificulty(period.getMorning(), maxChar);
-            }
-
-            //Afternoon
-            genePeriod = gene.getAfternoon();
-            if (!genePeriod.isEmpty()) {
-                qtdPeriodsAvailable++;
-
-                maxChar = getMaxDificulty(genePeriod);
-                acumulativeValue += getAcumulativeValueByDificulty(period.getMorning(), maxChar);
-            }
-
-            //Night
-            genePeriod = gene.getNight();
-            if (!genePeriod.isEmpty()) {
-                qtdPeriodsAvailable++;
-
-                maxChar = getMaxDificulty(genePeriod);
-                acumulativeValue += getAcumulativeValueByDificulty(period.getMorning(), maxChar);
-            }
-
-        }
-
-        float total = acumulativeValue / qtdPeriodsAvailable;
-        //System.out.println("acumulativeValue: " + acumulativeValue + " qtdPeriodsAvailable: " + qtdPeriodsAvailable + " Total: " + total);
-
-        return total;
-    }
-
-    public char getMaxDificulty(ArrayList<SubjectWorkload> subjects) {
-        char maxChar;
-        int maxDif;
-        int hardSum = 0;
-        int mediumSum = 0;
-        int easySum = 0;
-
-        for (SubjectWorkload sw: subjects) {
-            char dificulty = sw.getSubject().getDificulty();
-            if (dificulty == HARD) {
-                hardSum++;
-            } else if (dificulty == MEDIUM) {
-                mediumSum++;
-            } else {
-                easySum++;
-            }
-        }
-        maxDif = Math.max(Math.max(hardSum,mediumSum),easySum);
-
-        maxChar = NONE;
-        if (maxDif == hardSum) {
-            maxChar = HARD;
-        } else if (maxDif == mediumSum) {
-            maxChar = MEDIUM;
-        } else {
-            maxChar = EASY;
-        }
-
-        return maxChar;
-    }
-
-    public int getAcumulativeValueByDificulty(char periodAvailable, char maxDificulty) {
-        int acumulativeValue = 0;
-
-        if (maxDificulty == HARD) {
-            //Hard subjects
-            if (periodAvailable == GOOD) {
-                acumulativeValue = 100;
-            } else if (periodAvailable == MEDIUM) {
-                acumulativeValue = 50;
-            }
-        } else if (maxDificulty > MEDIUM) {
-            //Median subjects
-            if (periodAvailable == GOOD) {
-                acumulativeValue = 50;
-            } else if (periodAvailable == MEDIUM) {
-                acumulativeValue = 100;
-            } else {
-                acumulativeValue = 50;
-            }
-        } else if (maxDificulty == EASY){
-            // Easy subjects
-            if (periodAvailable == MEDIUM) {
-                acumulativeValue = 50;
-            } else if (periodAvailable == BAD) {
-                acumulativeValue = 100;
-            }
-        }
-
-        return acumulativeValue;
-    }
-*/
-
     /**
     * Check if the subjects are studies in one time only.
     *
@@ -715,7 +603,113 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * Classification: Hard
      *
      */
-    public void fillPeriodsAvailable() {
+    public float fillPeriodsAvailable(GeneVectorIndividual individual) {
+        long individualLength = individual.size();
+        int cycleIt = 0;
+        ArrayList<Period> studyCycle = this.dayPeriodAvailable.getStudyCycle();
+        int studyCycleSize = studyCycle.size();
+        int acumulativeValue = 0;
+
+        char periodAvailable;
+
+        DayPlanGene gene;
+        Period period;
+
+        for (int i = 0; i < individualLength; i++) {
+            gene = (DayPlanGene) individual.genome[i];
+            period = studyCycle.get(cycleIt);
+
+            acumulativeValue += getAcumulativeValueByWorkload(gene.getMorning(), period.getMorning());
+            acumulativeValue += getAcumulativeValueByWorkload(gene.getAfternoon(), period.getAfternoon());
+            acumulativeValue += getAcumulativeValueByWorkload(gene.getNight(), period.getNight());
+
+            cycleIt++;
+            if(cycleIt == studyCycleSize) {
+                cycleIt = 0;
+            }
+        }
+
+        return ((float)acumulativeValue / (individualLength*3f));
+    }
+
+    /**
+     * Get the correct acumulativeValue from a list of subjectWorkloads
+     * and the period of the day available.
+     *
+     * Classification table:
+     *
+     * If period of the day is...
+     *     NOTHING:
+     *          n = 0               100 (the acumulative value)
+     *          0 > n < 1           75
+     *          1 >= n < 2          50
+     *          2 >= n < 3          25
+     *          n >= 3              25
+     *
+     *     SMALL:
+     *          1 <= n >= 9         0
+     *          7 > n <= 9          25
+     *          6 > n <= 7          75
+     *          4 > n <= 6          100
+     *          3 > n <= 4          75
+     *          1 > n <= 3          25
+     *
+     *     BIG:
+     *          0 >= n < 2          0
+     *          2 >= n < 4          25
+     *          4 >= n < 6          50
+     *          6 >= n < 8          75
+     *          8 >= n <= 10        100
+     *
+     * @param  subjectWorkloads   [description]
+     * @param  dayPeriodAvailable [description]
+     * @return                    [description]
+     */
+    public int getAcumulativeValueByWorkload(ArrayList<SubjectWorkload> subjectWorkloads, char dayPeriodAvailable) {
+        int acumulativeValue = 0;
+
+        int workloadSum = 0;
+        for (SubjectWorkload sw : subjectWorkloads) {
+            workloadSum += sw.getWorkload();
+        }
+
+        if (dayPeriodAvailable == NOTHING) {
+            if (workloadSum == 0) {
+                acumulativeValue = 100;
+            } else if (workloadSum < 1) {
+                acumulativeValue = 75;
+            } else if (workloadSum < 2) {
+                acumulativeValue = 50;
+            } else if (workloadSum < 3) {
+                acumulativeValue = 25;
+            }
+        } else if (dayPeriodAvailable == SMALL) {
+            if (workloadSum <= 1 || workloadSum >= 9) {
+                acumulativeValue = 0;
+            } else if (workloadSum > 7) {
+                acumulativeValue = 25;
+            } else if (workloadSum > 6) {
+                acumulativeValue = 75;
+            } else if (workloadSum > 4) {
+                acumulativeValue = 100;
+            } else if (workloadSum > 3) {
+                acumulativeValue = 75;
+            } else if (workloadSum > 1) {
+                acumulativeValue = 25;
+            }
+        } else {
+            if (workloadSum > 8) {
+                acumulativeValue = 100;
+            } else if (workloadSum > 6) {
+                acumulativeValue = 75;
+            } else if (workloadSum > 4) {
+                acumulativeValue = 50;
+            } else if (workloadSum > 2) {
+                acumulativeValue = 25;
+            }
+        }
+
+        return acumulativeValue;
     }
 
    /**
@@ -763,7 +757,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
         //System.out.println( "qtdNothingPeriods: " + qtdNothingPeriods + " acumulativeValue: " + acumulativeValue);
 
-        float total = acumulativeValue / qtdNothingPeriods;
+        float total = (float)acumulativeValue / (float)qtdNothingPeriods;
 
         return total;
     }
@@ -839,7 +833,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             }
         }
 
-        float total = acumulativeValue / qtdPeriodsAvailable;
+        float total = (float)acumulativeValue / (float)qtdPeriodsAvailable;
         //System.out.println("acumulativeValue: " + acumulativeValue + " qtdPeriodsAvailable: " + qtdPeriodsAvailable + " Total: " + total);
 
         return total;
