@@ -17,7 +17,7 @@ import java.util.ArrayList;
 public class Student {
 
 	private String name;
-	private int hoursToLeisure; //per week
+	private float hoursToLeisure; //on all study plan.
 
 	public String getName() {
 		return this.name;
@@ -27,11 +27,11 @@ public class Student {
 		this.name = name;
 	}
 
-	public int getHoursToLeisure() {
+	public float getHoursToLeisure() {
 		return this.hoursToLeisure;
 	}
 
-	public void setHoursToLeisure(int hoursToLeisure) {
+	public void setHoursToLeisure(float hoursToLeisure) {
 		this.hoursToLeisure = hoursToLeisure;
 	}
 }

@@ -138,15 +138,16 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @return <code>float</code>   the fitness value.
      */
     public float calculateFitnessValue(GeneVectorIndividual individual) {
-        float inappropriatePeriod = subjectInInappropriatePeriod(individual);
-        float hard = hardSubjectInEasyPeriod(individual);
+        //float inappropriatePeriod = subjectInInappropriatePeriod(individual);
+        //float hard = hardSubjectInEasyPeriod(individual);
         //float maxSix = maxSixHoursPerPeriod(individual);
-        float gradually = toStudyGradually(individual);
+        //float gradually = toStudyGradually(individual);
         //float fillPeriods = fillPeriodsAvailable(individual);
+        float leisure = hoursToLeisure(individual);
 
-        float fitness = inappropriatePeriod + (hard + (gradually));
+        //float fitness = inappropriatePeriod + (hard + (gradually));
         //System.out.println("fits: " + inappropriatePeriod + " " + hard);
-        return fitness / 3;
+        return leisure;
     }
 
     /**
@@ -165,7 +166,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         int acumulativeValue = 0;
         int qtdPerids = (int)individual.size();
 
-        ArrayList<SubjectWorkload> allSubjWorkloads = new ArrayList<SubjectWorkload>();
         ArrayList<ArrayList<SubjectWorkload> > allPeriods = new ArrayList<ArrayList<SubjectWorkload> >();
         ArrayList<SubjectWorkload> subjectWorkloads;
         //ArrayList<SubjectWorkload> emptyPeriod;
@@ -183,7 +183,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             subjectWorkloads = gene.getMorning();
             if (!subjectWorkloads.isEmpty()) {
                 allPeriods.add(subjectWorkloads);
-                allSubjWorkloads.addAll(subjectWorkloads);
 
             } else {
                 int pos = i*3;
@@ -193,7 +192,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             subjectWorkloads = gene.getAfternoon();
             if (!subjectWorkloads.isEmpty()) {
                 allPeriods.add(subjectWorkloads);
-                allSubjWorkloads.addAll(subjectWorkloads);
             } else {
                 int pos = (i*3)+1;
                 periodsEmpty.set(pos, 1);
@@ -202,7 +200,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             subjectWorkloads = gene.getNight();
             if (!subjectWorkloads.isEmpty()) {
                 allPeriods.add(subjectWorkloads);
-                allSubjWorkloads.addAll(subjectWorkloads);
             } else {
                 int pos = (i*3)+2;
                 periodsEmpty.set(pos, 1);
@@ -629,7 +626,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             }
         }
 
-        return ((float)acumulativeValue / (individualLength*3f));
+        return acumulativeValue / (individualLength*3f);
     }
 
     /**
@@ -717,7 +714,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     * user don't have disponibility.
     *
     * Classification: Fixed Constraint.
- * @param individual
+    * @param individual
     *
     * @return  <code>true</code>   if the constraint was satisfied.
     *          <code>false</code>  otherwise.
@@ -762,6 +759,13 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         return total;
     }
 
+    /**
+     * Generate a value for nearest empty period.
+     *
+     * @param  period [description]
+     *
+     * @return        [description]
+     */
     public int getAcumulativeValueByNothingPeriod(ArrayList<SubjectWorkload> period) {
         int acumulativeValue = 0;
 
@@ -784,7 +788,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     /**
     * Verify if the student hours to leisure was attended.
     *
-    * WHEN ONE PERSON CHOISE "NOTHING" IN A PERIOD OF THE DAY, THEY
+    * WHEN A PERSON CHOISE "NOTHING" IN A PERIOD OF THE DAY, THEY
     * WAS PLANING
     *
     * Classification: Soft Constraint.
@@ -792,12 +796,85 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     * @return  <code>true</code>   if the constraint was attended.
     *          <code>false</code>  otherwise.
     */
-    public void hoursToLeisure() {
+    public float hoursToLeisure(GeneVectorIndividual individual) {
+        long individualLength = individual.size();
+        int cycleIt = 0;
+        ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
+        ArrayList<Period> studyCycle = this.dayPeriodAvailable.getStudyCycle();
+        int studyCycleSize = studyCycle.size();
+        int qtdNothingPeriods = 0;
 
+        for (int i = 0; i < individualLength; i++) {
+            DayPlanGene gene = (DayPlanGene) individual.genome[i];
+            subjectWorkloads.addAll(gene.getMorning());
+            subjectWorkloads.addAll(gene.getAfternoon());
+            subjectWorkloads.addAll(gene.getNight());
+
+            if (studyCycle.get(cycleIt).getMorning() == NOTHING) {
+                qtdNothingPeriods++;
+            }
+
+            if (studyCycle.get(cycleIt).getAfternoon() == NOTHING) {
+                qtdNothingPeriods++;
+            }
+
+            if (studyCycle.get(cycleIt).getNight() == NOTHING) {
+                qtdNothingPeriods++;
+            }
+
+            cycleIt++;
+            if(cycleIt == studyCycleSize) {
+                cycleIt = 0;
+            }
+        }
+
+        float hoursSum = 0.0f;
+        for (SubjectWorkload sw: subjectWorkloads) {
+            hoursSum += sw.getWorkload();
+        }
+
+        DayPlanGene gene;
+        Period period;
+
+        int qtdPeriodsAlocated = ((int)individualLength*3) - qtdNothingPeriods;
+        //System.out.println("qtdPeriodsAlocated: " + qtdPeriodsAlocated + " qtdNothingPeriods: " + qtdNothingPeriods);
+        float qtdTotalHoursAlocated = qtdPeriodsAlocated * 5;
+        //System.out.println("qtdTotalHoursAlocated: " + qtdTotalHoursAlocated +" sum: " + hoursSum);
+        int acumulativeValue = getAcumulativeValueByLeisure(qtdTotalHoursAlocated, hoursSum, this.student.getHoursToLeisure());
+
+        return (float)acumulativeValue;
     }
 
     /**
-    * Check if the Student hours to leisure was satisfield.
+     * Get a acumulativeValue from a individual respecting
+     * the hours to leisure from user.
+     *
+     * @param  qtdTotalHoursAlocated [description]
+     * @param  hoursSum              [description]
+     * @param  hoursToLeisure        [description]
+     * @return                       [description]
+     */
+    public int getAcumulativeValueByLeisure(float qtdTotalHoursAlocated, float hoursSum, float hoursToLeisure) {
+        int acumulativeValue = 0;
+
+        float qtdHoursAvailable = qtdTotalHoursAlocated - hoursToLeisure;
+        if (qtdHoursAvailable >= hoursSum) {
+            acumulativeValue = 100;
+        } else if (hoursSum <= qtdHoursAvailable + 3) {
+                acumulativeValue = 75;
+        } else if (hoursSum <= qtdHoursAvailable + 6) {
+                acumulativeValue = 50;
+        } else if (hoursSum <= qtdHoursAvailable + 9) {
+                acumulativeValue = 25;
+        }
+
+        //System.out.println("acumulativeValue: " + acumulativeValue + " qtdHoursAvailable: " + qtdHoursAvailable);
+        return acumulativeValue;
+    }
+
+    /**
+    * Check if exist periods that the sum of workload is greather
+    * than 6 hours.
     *
     * Classification: Fixed Constraint.
      * @param individual
@@ -899,8 +976,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
                 String[] studentInfo = line.split(" ");
 
                 student.setName(studentInfo[0]);
-                char hoursToLeisureChar = studentInfo[1].charAt(0);
-                int hoursToLeisure = Character.getNumericValue(hoursToLeisureChar);
+                String hoursToLeisureStr = studentInfo[1];
+                int hoursToLeisure = Integer.parseInt(hoursToLeisureStr);
                 student.setHoursToLeisure(hoursToLeisure);
             }
         } else {
