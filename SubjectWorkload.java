@@ -22,7 +22,7 @@ import java.io.DataOutput;
 public class SubjectWorkload {
 
 	Subject subject;
-	int workload; //from 1 to 32
+	int workload; //from 1 to 10
 
 	public Subject getSubject() {
 		return this.subject;

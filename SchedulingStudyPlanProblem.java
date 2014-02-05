@@ -30,6 +30,7 @@ import java.util.Vector;
 import java.util.ArrayList;
 //import java.util.Array;
 import java.lang.Character;
+import java.util.Collections;
 
 /**
  * SchedulingStudyPlanProblem.java
@@ -138,16 +139,17 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @return <code>float</code>   the fitness value.
      */
     public float calculateFitnessValue(GeneVectorIndividual individual) {
-        //float inappropriatePeriod = subjectInInappropriatePeriod(individual);
+        float inappropriatePeriod = subjectInInappropriatePeriod(individual);
         //float hard = hardSubjectInEasyPeriod(individual);
         //float maxSix = maxSixHoursPerPeriod(individual);
         //float gradually = toStudyGradually(individual);
-        //float fillPeriods = fillPeriodsAvailable(individual);
-        float leisure = hoursToLeisure(individual);
+        float fillPeriods = fillPeriodsAvailable(individual);
+        //float leisure = hoursToLeisure(individual);
+        float maxHour = notWasteAllTimeInTheSameSubject(individual);
 
         //float fitness = inappropriatePeriod + (hard + (gradually));
         //System.out.println("fits: " + inappropriatePeriod + " " + hard);
-        return leisure;
+        return (fillPeriods);
     }
 
     /**
@@ -582,18 +584,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     }
 
     /**
-    * Check if the subjects are studies in one time only.
-    *
-    * Classification: Fixed/HARD Constraint.
-    *
-    * @return  <code>true</code>   if the constraint was satisfied.
-    *          <code>false</code>  otherwise.
-    */
-    public void notWasteAllTimeInTheSameSubject() {
-
-    }
-
-    /**
      * Try to fill the period of the day that the user
      * have disponibility to study.
      *
@@ -606,8 +596,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         ArrayList<Period> studyCycle = this.dayPeriodAvailable.getStudyCycle();
         int studyCycleSize = studyCycle.size();
         int acumulativeValue = 0;
-
-        char periodAvailable;
 
         DayPlanGene gene;
         Period period;
@@ -869,6 +857,85 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         }
 
         //System.out.println("acumulativeValue: " + acumulativeValue + " qtdHoursAvailable: " + qtdHoursAvailable);
+        return acumulativeValue;
+    }
+
+    /**
+    * Check if the subjects are studies in one time only.
+    *
+    * Classification: Fixed/HARD Constraint.
+    *
+    * @return  <code>true</code>   if the constraint was satisfied.
+    *          <code>false</code>  otherwise.
+    */
+    public float notWasteAllTimeInTheSameSubject(GeneVectorIndividual individual) {
+        long individualLength = individual.size();
+        int acumulativeValue = 0;
+        int qtdPeriodsAvailable = 0;
+
+        ArrayList<SubjectWorkload> period;
+        for (int i = 0; i < individualLength; i++) {
+            DayPlanGene gene = (DayPlanGene) individual.genome[i];
+
+            period = gene.getMorning();
+            if (!period.isEmpty()) {
+                qtdPeriodsAvailable++;
+                acumulativeValue += getAcumulativeValueByMaxHour(period);
+            }
+
+            period = gene.getAfternoon();
+            if (!period.isEmpty()) {
+                qtdPeriodsAvailable++;
+                acumulativeValue += getAcumulativeValueByMaxHour(period);
+            }
+
+            period = gene.getNight();
+            if (!period.isEmpty()) {
+                qtdPeriodsAvailable++;
+                acumulativeValue += getAcumulativeValueByMaxHour(period);
+            }
+        }
+
+        return (float)acumulativeValue / (float)qtdPeriodsAvailable;
+    }
+
+    /**
+     * Return the acumulative value in relation of
+     * the classification below:
+     *
+     * if the difference between max and the second max is:
+     *     0 then: 100 - (0*25) is equals 100.
+     *     1 then: 100 - (1*25) is equals 75.
+     *     and so on..
+     *
+     * @param  max          the max value.
+     * @param  secondMax    the second max value.
+     *
+     * @return           the classification.
+     */
+    public int getAcumulativeValueByMaxHour(ArrayList<SubjectWorkload> period) {
+
+        ArrayList<Integer> hours = new ArrayList<Integer>();
+        for (SubjectWorkload sw: period) {
+            hours.add(sw.getWorkload());
+        }
+        Collections.sort(hours);
+        int hoursLength = hours.size();
+        int max = hours.get(hoursLength - 1);
+
+        int acumulativeValue = 0;
+        if ((hoursLength - 2) >= 0) {
+            int secondMax = hours.get(hoursLength - 2);
+
+            //System.out.println("v: " + max +" "+ secondMax);
+            int dif = (max/2) - (secondMax/2);
+
+            if (dif <= 4) {
+                acumulativeValue = 100 - (dif*25);
+            }
+            //System.out.println("d: " + dif + " " + acumulativeValue);
+        }
+
         return acumulativeValue;
     }
 

@@ -243,20 +243,25 @@ public class DayPlanGene extends Gene {
     public Boolean insertSubjectWorkload(EvolutionState state, final int thread) {
 
         SubjectWorkload subjectWorkload = getNewSubjectWorkloadInstance(state, thread);
+        Boolean added = Boolean.TRUE;
+        int maxAttempt = 0;
 
-        int periodOfTheDay = state.random[thread].nextInt(3); //random from 0 to 2
-        //Don't be permitted insert duplicated subjects
-        if(periodOfTheDay == 0 && !contensAndMoreThanFive(morning, subjectWorkload)) {
-            morning.add(subjectWorkload);
-        } else if (periodOfTheDay == 1 && !contensAndMoreThanFive(afternoon, subjectWorkload)) {
-            afternoon.add(subjectWorkload);
-        } else if(!contensAndMoreThanFive(night, subjectWorkload)) {
-            night.add(subjectWorkload);
-        } else {
-            return Boolean.FALSE;
+        while (added && maxAttempt < 10) {
+            int periodOfTheDay = state.random[thread].nextInt(3); //random from 0 to 2
+            //Don't be permitted insert duplicated subjects
+            if(periodOfTheDay == 0 && !contensAndMoreThanFive(morning, subjectWorkload)) {
+                morning.add(subjectWorkload);
+            } else if (periodOfTheDay == 1 && !contensAndMoreThanFive(afternoon, subjectWorkload)) {
+                afternoon.add(subjectWorkload);
+            } else if(!contensAndMoreThanFive(night, subjectWorkload)) {
+                night.add(subjectWorkload);
+            } else {
+                added = Boolean.FALSE;
+            }
+            maxAttempt++;
         }
 
-        return Boolean.TRUE;
+        return added;
     }
 
     /**
@@ -647,17 +652,29 @@ public class DayPlanGene extends Gene {
 
     }
 
-	public ArrayList<SubjectWorkload> getMorning() {
-		return this.morning;
-	}
+  	public ArrayList<SubjectWorkload> getMorning() {
+  		  return this.morning;
+  	}
 
-	public ArrayList<SubjectWorkload> getAfternoon() {
-		return this.afternoon;
-	}
+  	public ArrayList<SubjectWorkload> getAfternoon() {
+  		  return this.afternoon;
+  	}
 
-	public ArrayList<SubjectWorkload> getNight() {
-		return this.night;
-	}
+  	public ArrayList<SubjectWorkload> getNight() {
+  		  return this.night;
+  	}
+
+    public void setMorning(ArrayList<SubjectWorkload> morning) {
+        this.morning = morning;
+    }
+
+    public void setAfternoon(ArrayList<SubjectWorkload> afternoon) {
+        this.afternoon = afternoon;
+    }
+
+    public void setNight(ArrayList<SubjectWorkload> night) {
+        this.night = night;
+    }
 
     /**
     *   Print in the console the lines of the input.
