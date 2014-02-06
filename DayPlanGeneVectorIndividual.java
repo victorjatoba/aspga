@@ -70,20 +70,22 @@ public class DayPlanGeneVectorIndividual extends GeneVectorIndividual {
     public void perPeriodCrossover(EvolutionState state, int thread, GeneVectorIndividual ind) {
 		GeneVectorSpecies s = (GeneVectorSpecies) species;
         GeneVectorIndividual i = ind;
-        int point;
 
     	int y = state.random[thread].nextInt(i.genome.length);
 		DayPlanGene geneI = (DayPlanGene)i.genome[y];
 
 		int periodOfTheDay = state.random[thread].nextInt(3);
 
-        if(periodOfTheDay == 0) {
-            switchGeneIMorning(geneI, state, thread);
-        } else if (periodOfTheDay == 1) {
-            switchGeneIAfternoon(geneI, state, thread);
-        } else {
-            switchGeneINight(geneI, state, thread);
-        }
+    	int point = state.random[thread].nextInt((genome.length / s.chunksize)+1);
+        for(int x=0; x < point*s.chunksize; x++) {
+	        if(periodOfTheDay == 0) {
+	            switchGeneIMorning(geneI, state, thread);
+	        } else if (periodOfTheDay == 1) {
+	            switchGeneIAfternoon(geneI, state, thread);
+	        } else {
+	            switchGeneINight(geneI, state, thread);
+	        }
+	    }
     }
 
     public void switchGeneIMorning(DayPlanGene geneI, EvolutionState state, int thread) {

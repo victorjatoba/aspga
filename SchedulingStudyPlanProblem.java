@@ -126,7 +126,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             /// ...the fitness...
             fitnessValue,
             ///... is the individual ideal?  Indicate here...
-            (fitnessValue == 100.0f));
+            (fitnessValue == 200.0f));
 
         individual.evaluated = true;
     }
@@ -139,17 +139,26 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @return <code>float</code>   the fitness value.
      */
     public float calculateFitnessValue(GeneVectorIndividual individual) {
-        float inappropriatePeriod = subjectInInappropriatePeriod(individual);
-        //float hard = hardSubjectInEasyPeriod(individual);
         //float maxSix = maxSixHoursPerPeriod(individual);
-        //float gradually = toStudyGradually(individual);
+        float inappropriatePeriod = subjectInInappropriatePeriod(individual);
         float fillPeriods = fillPeriodsAvailable(individual);
-        //float leisure = hoursToLeisure(individual);
-        float maxHour = notWasteAllTimeInTheSameSubject(individual);
+        float hardSubject = hardSubjectInEasyPeriod(individual);
+        float gradually = toStudyGradually(individual);
+        float leisure = hoursToLeisure(individual);
+        //float maxHour = notWasteAllTimeInTheSameSubject(individual);
 
-        //float fitness = inappropriatePeriod + (hard + (gradually));
-        //System.out.println("fits: " + inappropriatePeriod + " " + hard);
-        return (fillPeriods);
+        float fixed = (fillPeriods + inappropriatePeriod) / 2f;
+        //float fixed = fillPeriods;
+        //float hard = (hardSubject + gradually + maxHour) / 3f;
+        float hard = (hardSubject + gradually) / 2f;
+        float soft = leisure;
+
+        float fitness = fixed + (hard * 0.7f) + (soft * 0.3f);
+        //float fitness = fillPeriods;
+        //float fitness = fixed;
+        //System.out.println(fitness);
+
+        return fitness;
     }
 
     /**
@@ -583,6 +592,27 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         return isFake;
     }
 
+    public float haveDifferentDayPlans(GeneVectorIndividual individual) {
+        long individualLength = individual.size();
+        DayPlanGene gene;
+        DayPlanGene geneTo;
+        int acumulativeValue = 0;
+        int equals = 0;
+
+        for (int i = 0; i < individualLength; i++) {
+            gene = (DayPlanGene) individual.genome[i];
+
+            for (int j = 0; j < individualLength; j++) {
+                geneTo = (DayPlanGene) individual.genome[j];
+                if (gene.equals(geneTo)) {
+                    equals++;
+                }
+            }
+        }
+
+        return acumulativeValue;
+    }
+
     /**
      * Try to fill the period of the day that the user
      * have disponibility to study.
@@ -604,9 +634,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             gene = (DayPlanGene) individual.genome[i];
             period = studyCycle.get(cycleIt);
 
-            acumulativeValue += getAcumulativeValueByWorkload(gene.getMorning(), period.getMorning());
-            acumulativeValue += getAcumulativeValueByWorkload(gene.getAfternoon(), period.getAfternoon());
-            acumulativeValue += getAcumulativeValueByWorkload(gene.getNight(), period.getNight());
+            acumulativeValue += getAcumulativeValueFillPeriods(gene.getMorning(), period.getMorning());
+            acumulativeValue += getAcumulativeValueFillPeriods(gene.getAfternoon(), period.getAfternoon());
+            acumulativeValue += getAcumulativeValueFillPeriods(gene.getNight(), period.getNight());
 
             cycleIt++;
             if(cycleIt == studyCycleSize) {
@@ -646,17 +676,12 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *          6 >= n < 8          75
      *          8 >= n <= 10        100
      *
-     * @param  subjectWorkloads   [description]
+     * @param  workloadSum   [description]
      * @param  dayPeriodAvailable [description]
      * @return                    [description]
      */
-    public int getAcumulativeValueByWorkload(ArrayList<SubjectWorkload> subjectWorkloads, char dayPeriodAvailable) {
+    public int getAcumulativeValueByWorkload(int workloadSum, char dayPeriodAvailable) {
         int acumulativeValue = 0;
-
-        int workloadSum = 0;
-        for (SubjectWorkload sw : subjectWorkloads) {
-            workloadSum += sw.getWorkload();
-        }
 
         if (dayPeriodAvailable == NOTHING) {
             if (workloadSum == 0) {
@@ -697,6 +722,63 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         return acumulativeValue;
     }
 
+    public int getAcumulativeValueByQttSubjects(int qtt, char dayPeriodAvailable) {
+        int acumulativeValue = 0;
+
+        if (dayPeriodAvailable == NOTHING) {
+            if (qtt == 0) {
+                acumulativeValue = 100;
+            } else if (qtt < 1) {
+                acumulativeValue = 25;
+            } else if (qtt < 2) {
+                acumulativeValue = 10;
+            }
+        } else if (dayPeriodAvailable == SMALL) {
+            if (qtt == 0 || qtt >= 9) {
+                acumulativeValue = 0;
+            } else if (qtt >= 6) {
+                acumulativeValue = 25;
+            } else if (qtt > 3) {
+                acumulativeValue = 75;
+            } else if (qtt <= 3) {
+                acumulativeValue = 100;
+            }
+        } else {
+            if (qtt >= 5) {
+                acumulativeValue = 100;
+            } else if (qtt >= 4) {
+                acumulativeValue = 75;
+            } else if (qtt >= 3) {
+                acumulativeValue = 50;
+            } else if (qtt >= 2) {
+                acumulativeValue = 25;
+            }
+        }
+
+        return acumulativeValue;
+    }
+
+    /**
+     * The ideal is fill all time period avaible
+     * with a more subjects quantity.
+     *
+     * @param  subjectWorkloads   [description]
+     * @param  dayPeriodAvailable [description]
+     * @return                    [description]
+     */
+    public int getAcumulativeValueFillPeriods(ArrayList<SubjectWorkload> subjectWorkloads, char dayPeriodAvailable) {
+
+        int workloadSum = 0;
+        for (SubjectWorkload sw : subjectWorkloads) {
+            workloadSum += sw.getWorkload();
+        }
+
+        int acumulativeValue = getAcumulativeValueByWorkload(workloadSum, dayPeriodAvailable);
+        //acumulativeValue += getAcumulativeValueByQttSubjects(subjectWorkloads.size(), dayPeriodAvailable);
+
+        return acumulativeValue;
+    }
+
    /**
     * Check if have subjects in the period of the day who the
     * user don't have disponibility.
@@ -713,26 +795,16 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         ArrayList<Period> studyCycle = this.dayPeriodAvailable.getStudyCycle();
         int studyCycleSize = studyCycle.size();
         int acumulativeValue = 0;
-        int qtdNothingPeriods = 0;
-        //dayPeriodAvailable;
+        DayPlanGene gene;
+        Period period;
 
         for (int i = 0; i < individualLength; i++) {
-            DayPlanGene gene = (DayPlanGene) individual.genome[i];
+            gene = (DayPlanGene) individual.genome[i];
+            period = studyCycle.get(cycleIt);
 
-            if (studyCycle.get(cycleIt).getMorning() == NOTHING) {
-                qtdNothingPeriods++;
-                acumulativeValue += getAcumulativeValueByNothingPeriod(gene.getMorning());
-            }
-
-            if (studyCycle.get(cycleIt).getAfternoon() == NOTHING) {
-                qtdNothingPeriods++;
-                acumulativeValue += getAcumulativeValueByNothingPeriod(gene.getAfternoon());
-            }
-
-            if (studyCycle.get(cycleIt).getNight() == NOTHING) {
-                qtdNothingPeriods++;
-                acumulativeValue += getAcumulativeValueByNothingPeriod(gene.getNight());
-            }
+            acumulativeValue += getAcumulativeValueByQttSubjects(gene.getMorning().size(), period.getMorning());
+            acumulativeValue += getAcumulativeValueByQttSubjects(gene.getAfternoon().size(), period.getAfternoon());
+            acumulativeValue += getAcumulativeValueByQttSubjects(gene.getNight().size(), period.getNight());
 
             cycleIt++;
             if(cycleIt == studyCycleSize) {
@@ -740,9 +812,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             }
         }
 
-        //System.out.println( "qtdNothingPeriods: " + qtdNothingPeriods + " acumulativeValue: " + acumulativeValue);
-
-        float total = (float)acumulativeValue / (float)qtdNothingPeriods;
+        float total = acumulativeValue / (individualLength*3f);
 
         return total;
     }
@@ -916,16 +986,24 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     public int getAcumulativeValueByMaxHour(ArrayList<SubjectWorkload> period) {
 
         ArrayList<Integer> hours = new ArrayList<Integer>();
+        hours.clear();
         for (SubjectWorkload sw: period) {
             hours.add(sw.getWorkload());
         }
         Collections.sort(hours);
-        int hoursLength = hours.size();
+/*        System.out.print("array ");
+        for (Integer x: hours) {
+            System.out.print(x + " ");
+        }
+*/        int hoursLength = hours.size();
         int max = hours.get(hoursLength - 1);
+//        System.out.println("\nL: " + hoursLength + " m: " + max);
 
         int acumulativeValue = 0;
         if ((hoursLength - 2) >= 0) {
             int secondMax = hours.get(hoursLength - 2);
+//            System.out.println("m2: " + secondMax);
+            //int secondMax = 1;
 
             //System.out.println("v: " + max +" "+ secondMax);
             int dif = (max/2) - (secondMax/2);
@@ -935,7 +1013,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             }
             //System.out.println("d: " + dif + " " + acumulativeValue);
         }
+//        System.out.println("ac: " + acumulativeValue);
 
+        //acumulativeValue = 100;
         return acumulativeValue;
     }
 

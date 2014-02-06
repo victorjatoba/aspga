@@ -37,7 +37,7 @@ pop.subpop.0.species.gene 		= ec.app.aspga.DayPlanGene
 
 pop.subpop.0.species.genome-size	= 7
 #below is the per-gene crossover probability, not the probability that the entire individual will be crossed over.
-pop.subpop.0.species.crossover-type	= two
+pop.subpop.0.species.crossover-type	= any
 pop.subpop.0.species.crossover-prob	= 0.25
 base.likelihood = 0.25
 #each gene is only mutated with a certain probability
