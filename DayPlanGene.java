@@ -220,9 +220,9 @@ public class DayPlanGene extends Gene {
             mutated = changeSubject(state, thread);
         } else {
 //            System.out.println("---4---");
-            Boolean mutated2 = changeWorkload(state, thread);
-            mutated = changeSubject(state, thread);
-            mutated = (mutated || mutated2);
+            Boolean changeW = changeWorkload(state, thread);
+            Boolean changeS = changeSubject(state, thread);
+            mutated = (changeW || changeS);
         }
 
         return mutated;
@@ -242,11 +242,11 @@ public class DayPlanGene extends Gene {
      */
     public Boolean insertSubjectWorkload(EvolutionState state, final int thread) {
 
-        SubjectWorkload subjectWorkload = getNewSubjectWorkloadInstance(state, thread);
         Boolean added = Boolean.TRUE;
         int maxAttempt = 0;
 
-        while (added && maxAttempt < 10) {
+//        while (added && maxAttempt < 10) {
+            SubjectWorkload subjectWorkload = getNewSubjectWorkloadInstance(state, thread);
             int periodOfTheDay = state.random[thread].nextInt(3); //random from 0 to 2
             //Don't be permitted insert duplicated subjects
             if(periodOfTheDay == 0 && !contensAndMoreThanFive(morning, subjectWorkload)) {
@@ -259,7 +259,7 @@ public class DayPlanGene extends Gene {
                 added = Boolean.FALSE;
             }
             maxAttempt++;
-        }
+//        }
 
         return added;
     }
@@ -397,7 +397,7 @@ public class DayPlanGene extends Gene {
         subjectOld.setDificulty(subjectRandom.getDificulty());
 
 //        subjectOld = getSubjectDifferentOf(subjectOld);
-//        String s = subjectOld.getName(); s += "[M]"; subjectOld.setName(s);
+        //String s = subjectOld.getName(); s += "[M]"; subjectOld.setName(s);
 //        System.out.println(""+subjectOld.getName());
 
         return Boolean.TRUE;
@@ -423,7 +423,7 @@ public class DayPlanGene extends Gene {
             subjectNew  = subjects.get(state.random[thread].nextInt(subjects.size()));
             idRandom    = subjectNew.getId();
         }
-
+        //System.out.println("" + subject.getName() + " " + subjectNew.getName());
         return getNewSubjectInstance(subjectNew);
     }
 

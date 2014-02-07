@@ -145,20 +145,38 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         float hardSubject = hardSubjectInEasyPeriod(individual);
         float gradually = toStudyGradually(individual);
         float leisure = hoursToLeisure(individual);
-        //float maxHour = notWasteAllTimeInTheSameSubject(individual);
+        float maxHour = notWasteAllTimeInTheSameSubject(individual);
+        float differentPlans = haveDifferentDayPlans(individual);
 
-        float fixed = (fillPeriods + inappropriatePeriod) / 2f;
+        float fixed = (fillPeriods + inappropriatePeriod + differentPlans) / (3f);
         //float fixed = fillPeriods;
         //float hard = (hardSubject + gradually + maxHour) / 3f;
-        float hard = (hardSubject + gradually) / 2f;
+        float hard = (hardSubject + gradually) / (2f);
         float soft = leisure;
 
         float fitness = fixed + (hard * 0.7f) + (soft * 0.3f);
-        //float fitness = fillPeriods;
+        //float fitness = maxHour + fixed;
         //float fitness = fixed;
         //System.out.println(fitness);
 
         return fitness;
+    }
+
+    /**
+     * I really need to study all subjects that I put in my plan.
+     *
+     * @return [description]
+     */
+    public void alocateAllSubjects() {
+    }
+
+    /**
+     * Subjects that contains more dificulty needs more
+     * time to study.
+     *
+     * @return [description]
+     */
+    public void subjectMoreDificultyNeedMoreTime() {
     }
 
     /**
@@ -592,25 +610,111 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         return isFake;
     }
 
+    /**
+     * Generate individuals that contains the max
+     * number of distinct genes.
+     *
+     * Classification: hard
+     *
+     * @param  individual [description]
+     * @return            the fitness value for this constraint.
+     */
     public float haveDifferentDayPlans(GeneVectorIndividual individual) {
         long individualLength = individual.size();
-        DayPlanGene gene;
-        DayPlanGene geneTo;
         int acumulativeValue = 0;
-        int equals = 0;
+
+        ArrayList<ArrayList<SubjectWorkload> > periodsToBeCompaired = new ArrayList<ArrayList<SubjectWorkload> >();
+        //ArrayList<SubjectWorkload> subjectWorkloads;
+        //ArrayList<SubjectWorkload> emptyPeriod;
 
         for (int i = 0; i < individualLength; i++) {
-            gene = (DayPlanGene) individual.genome[i];
+            DayPlanGene gene = (DayPlanGene) individual.genome[i];
 
-            for (int j = 0; j < individualLength; j++) {
-                geneTo = (DayPlanGene) individual.genome[j];
-                if (gene.equals(geneTo)) {
-                    equals++;
+            periodsToBeCompaired.add(gene.getMorning());
+            periodsToBeCompaired.add(gene.getAfternoon());
+            periodsToBeCompaired.add(gene.getNight());
+        }
+
+        if (!periodsToBeCompaired.isEmpty()) {
+            ArrayList<ArrayList<SubjectWorkload> > periodsCompaired = new ArrayList<ArrayList<SubjectWorkload> >();
+            int countRepetitivePeriods = 0;
+            for (ArrayList<SubjectWorkload> period: periodsToBeCompaired) {
+                if (contains(periodsCompaired, period)) {
+                    countRepetitivePeriods++;
+                } else {
+                    periodsCompaired.add(period);
                 }
             }
+
+            acumulativeValue = getAcumulativeValueByDistinctPlans(countRepetitivePeriods, periodsToBeCompaired.size());
         }
 
         return acumulativeValue;
+    }
+
+    public int getAcumulativeValueByDistinctPlans(int qttRepetitivePeriods, int totalPeriods) {
+
+        int acumulativeValue = 0;
+        int consideringPeriodsQtt = (totalPeriods/10);
+        if (qttRepetitivePeriods <= consideringPeriodsQtt*1) {
+            acumulativeValue = 100;
+        } else if (qttRepetitivePeriods <= consideringPeriodsQtt*2) {
+            acumulativeValue = 75;
+        } else if (qttRepetitivePeriods <= consideringPeriodsQtt*3) {
+            acumulativeValue = 50;
+        } else if (qttRepetitivePeriods <= consideringPeriodsQtt*4) {
+            acumulativeValue = 25;
+        }
+
+        //System.out.println("qrp " + qttRepetitivePeriods + " cpq " + consideringPeriodsQtt + " tp " + totalPeriods);
+        //System.out.println("acc " + acumulativeValue);
+
+        return acumulativeValue;
+    }
+
+    public Boolean contains(ArrayList<ArrayList<SubjectWorkload> > periodsCompaired, ArrayList<SubjectWorkload> periodToBeCompaired) {
+        Boolean equals = Boolean.FALSE;
+        for (ArrayList<SubjectWorkload> period: periodsCompaired) {
+            if (equalPeriods(period, periodToBeCompaired)) {
+                equals = Boolean.TRUE;
+                break;
+            }
+        }
+        return equals;
+    }
+
+    /**
+     * Verify the periods are equals.
+     *
+     * @param  periodA [description]
+     * @param  periodB [description]
+     *
+     * @return         [description]
+     */
+    public Boolean equalPeriods(ArrayList<SubjectWorkload> periodA, ArrayList<SubjectWorkload> periodB) {
+        Boolean equals = Boolean.TRUE;
+        if (periodA.size() == periodB.size()) {
+            for (int i = 0; i < periodA.size(); i++) {
+                SubjectWorkload subjectWorkloadA = periodA.get(i);
+                SubjectWorkload subjectWorkloadB = periodB.get(i);
+
+                //System.out.println(subjectWorkloadA.getWorkload() +" == "+ subjectWorkloadB.getWorkload());
+                //System.out.println(subjectWorkloadA.getSubject().getId() +" == "+ subjectWorkloadB.getSubject().getId());
+
+                //Verify the workloads and ids
+                if ( subjectWorkloadA.getWorkload() != subjectWorkloadB.getWorkload() ||
+                     subjectWorkloadA.getSubject().getId() != subjectWorkloadB.getSubject().getId()) {
+
+                    equals = Boolean.FALSE;
+                    break;
+                }
+            }
+        } else {
+            equals = Boolean.FALSE;
+        }
+        //System.out.println("equals " + equals);
+
+        return equals;
     }
 
     /**
@@ -995,26 +1099,28 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         for (Integer x: hours) {
             System.out.print(x + " ");
         }
-*/        int hoursLength = hours.size();
+*/
+        int hoursLength = hours.size();
         int max = hours.get(hoursLength - 1);
 //        System.out.println("\nL: " + hoursLength + " m: " + max);
 
         int acumulativeValue = 0;
+        int dif = -1;
         if ((hoursLength - 2) >= 0) {
             int secondMax = hours.get(hoursLength - 2);
 //            System.out.println("m2: " + secondMax);
             //int secondMax = 1;
 
             //System.out.println("v: " + max +" "+ secondMax);
-            int dif = (max/2) - (secondMax/2);
+            dif = (max/2) - (secondMax/2);
 
             if (dif <= 4) {
                 acumulativeValue = 100 - (dif*25);
             }
-            //System.out.println("d: " + dif + " " + acumulativeValue);
         }
 //        System.out.println("ac: " + acumulativeValue);
 
+        //System.out.println("d: " + dif + " " + acumulativeValue);
         //acumulativeValue = 100;
         return acumulativeValue;
     }
@@ -1079,7 +1185,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             workloadSum += sw.getWorkload();
         }
         if(workloadSum < 12) {
-            acumulativeValue += 100;
+            acumulativeValue = 100;
         }
 
         return acumulativeValue;
