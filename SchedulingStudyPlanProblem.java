@@ -142,21 +142,22 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         //float maxSix = maxSixHoursPerPeriod(individual);
         float inappropriatePeriod = subjectInInappropriatePeriod(individual);
         float fillPeriods = fillPeriodsAvailable(individual);
+        float alocateAll = alocateAllSubjects(individual);
         float hardSubject = hardSubjectInEasyPeriod(individual);
         float gradually = toStudyGradually(individual);
         float leisure = hoursToLeisure(individual);
         float maxHour = notWasteAllTimeInTheSameSubject(individual);
         float differentPlans = haveDifferentDayPlans(individual);
 
-        float fixed = (fillPeriods + inappropriatePeriod + differentPlans) / (3f);
+        float fixed = (fillPeriods + inappropriatePeriod + alocateAll + differentPlans) / (3f);
         //float fixed = fillPeriods;
-        //float hard = (hardSubject + gradually + maxHour) / 3f;
-        float hard = (hardSubject + gradually) / (2f);
+        float hard = (hardSubject + gradually + maxHour) / 3f;
+        //float hard = (hardSubject + gradually) / (2f);
         float soft = leisure;
 
-        float fitness = fixed + (hard * 0.7f) + (soft * 0.3f);
+        //float fitness = fixed + (hard * 0.7f) + (soft * 0.3f);
         //float fitness = maxHour + fixed;
-        //float fitness = fixed;
+        float fitness = alocateAll;
         //System.out.println(fitness);
 
         return fitness;
@@ -167,7 +168,68 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @return [description]
      */
-    public void alocateAllSubjects() {
+    public float alocateAllSubjects(GeneVectorIndividual individual) {
+        float acumulativeValue = 0;
+        int individualLength = (int)individual.size();
+
+        ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
+
+        Vector<Integer> periodsEmpty = new Vector<Integer>();
+
+        for (int i = 0; i < individualLength; i++) {
+            DayPlanGene gene = (DayPlanGene) individual.genome[i];
+
+            subjectWorkloads.addAll(gene.getMorning());
+            subjectWorkloads.addAll(gene.getAfternoon());
+            subjectWorkloads.addAll(gene.getNight());
+        }
+
+        ArrayList<Subject> subjectsAllreadyCounted = new ArrayList<Subject>();
+        int countSubjects = 0;
+        if (!subjectWorkloads.isEmpty()) {
+            for (SubjectWorkload sw: subjectWorkloads) {
+                Subject subject = sw.getSubject();
+                if (!contains(subjectsAllreadyCounted, subject)) {
+                        subjectsAllreadyCounted.add(subject);
+                }
+            }
+
+            int qttSubjects = subjectsAllreadyCounted.size();
+            acumulativeValue = getAcumulativeValueByAlocateAll(qttSubjects);
+        }
+
+        return acumulativeValue;
+    }
+
+    /**
+     * Get the correct acumulativeValue in relation of
+     * the quantity of subjects was alocated in the plan.
+     *
+     * @param  qttSubjectsFound [description]
+     * @return                  [description]
+     */
+    public float getAcumulativeValueByAlocateAll(int qttSubjectsFound) {
+        int qttSubjects = subjects.size();
+        float percent = (qttSubjectsFound*100) / qttSubjects;
+        return percent;
+    }
+
+    /**
+     * Verify if the array of the subjects contains
+     * the subject passed by param.
+     *
+     * @param  subjects [description]
+     * @param  subject  [description]
+     * @return          [description]
+     */
+    public Boolean contains(ArrayList<Subject> subjects, Subject subject) {
+        for (Subject s: subjects) {
+            if (s.getId() == subject.getId()) {
+                return Boolean.TRUE;
+            }
+        }
+
+        return Boolean.FALSE;
     }
 
     /**
