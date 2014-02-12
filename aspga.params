@@ -16,7 +16,7 @@ eval		= ec.simple.SimpleEvaluator
 stat		= ec.simple.SimpleStatistics
 exch		= ec.simple.SimpleExchanger
 
-generations				= 1000
+generations				= 100
 quit-on-run-complete	= true
 checkpoint				= false
 checkpoint-prefix		= ec
@@ -35,10 +35,10 @@ pop.subpop.0.species.fitness 	= ec.simple.SimpleFitness
 pop.subpop.0.species.ind		= ec.app.aspga.DayPlanGeneVectorIndividual
 pop.subpop.0.species.gene 		= ec.app.aspga.DayPlanGene
 
-pop.subpop.0.species.genome-size	= 4
+pop.subpop.0.species.genome-size	= 7
 #below is the per-gene crossover probability, not the probability that the entire individual will be crossed over.
-pop.subpop.0.species.crossover-type	= any
 pop.subpop.0.species.crossover-prob	= 0.25
+pop.subpop.0.species.crossover-type	= any
 base.likelihood = 0.25
 #each gene is only mutated with a certain probability
 pop.subpop.0.species.mutation-prob	= 0.25
@@ -79,3 +79,9 @@ pop.subpop.0.species.gene.courseInformation = datastructure/CourseInformation.in
 # print-params = true
 # print-unaccessed-params = true
 # print-unused-params = true
+
+stat.num-children = 1
+stat.child.0 = ec.app.aspga.charts.SimpleXYSeriesChartStatistics
+stat.child.0.title = Best of Generation
+stat.child.0.x-axis-label = generation
+stat.child.0.y-axis-label = fitness
