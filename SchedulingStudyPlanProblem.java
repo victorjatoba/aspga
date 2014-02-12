@@ -140,25 +140,23 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      */
     public float calculateFitnessValue(GeneVectorIndividual individual) {
         //float maxSix = maxSixHoursPerPeriod(individual);
-        float inappropriatePeriod = subjectInInappropriatePeriod(individual);
+        float needMoreTime = subjectMoreDificultyNeedMoreTime(individual);
         float fillPeriods = fillPeriodsAvailable(individual);
+        float inappropriatePeriod = subjectInInappropriatePeriod(individual);
+        float differentPlans = haveDifferentDayPlans(individual);
+
         float alocateAll = alocateAllSubjects(individual);
         float hardSubject = hardSubjectInEasyPeriod(individual);
         float gradually = toStudyGradually(individual);
-        float leisure = hoursToLeisure(individual);
+
         float maxHour = notWasteAllTimeInTheSameSubject(individual);
-        float differentPlans = haveDifferentDayPlans(individual);
+        float leisure = hoursToLeisure(individual);
 
-        float fixed = (fillPeriods + inappropriatePeriod + alocateAll + differentPlans) / (3f);
-        //float fixed = fillPeriods;
-        float hard = (hardSubject + gradually + maxHour) / 3f;
-        //float hard = (hardSubject + gradually) / (2f);
-        float soft = leisure;
+        float fixed = (needMoreTime + fillPeriods + inappropriatePeriod + differentPlans)/4;
+        float hard = (alocateAll + hardSubject + gradually) / 3;
+        float soft = (leisure + maxHour) / 2;
 
-        //float fitness = fixed + (hard * 0.7f) + (soft * 0.3f);
-        //float fitness = maxHour + fixed;
-        float fitness = alocateAll;
-        //System.out.println(fitness);
+        float fitness = fixed + (hard * 0.7f) + (soft * 0.3f);
 
         return fitness;
     }
@@ -236,9 +234,179 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * Subjects that contains more dificulty needs more
      * time to study.
      *
+     * Classification: Fixed Constraint
+     *
+     * @return  the acumulativeValue of this constraint.
+     */
+    public float subjectMoreDificultyNeedMoreTime(GeneVectorIndividual individual) {
+        float acumulativeValue = 0;
+
+        int sumAllDificulties = getSumAllDificulty();
+        int qttHoursAvailable = getQttHoursAvailable(individual);
+        for (Subject sub: subjects) {
+            int dificultyPercent = getDificultyPercent(sub.getDificulty(), sumAllDificulties);
+            float hoursIdeal = getQttIdealOfHours(qttHoursAvailable, dificultyPercent);
+            float hoursReal = getQttRealOfHours(individual, sub);
+            acumulativeValue += getAcumulativeValueByWasteHours(hoursIdeal, hoursReal);
+        }
+
+        return acumulativeValue / subjects.size();
+    }
+
+    /**
+     * Get the percent of the real hours of the subject in relation
+     * of the ideal hours that this subject should be.
+     *
+     * @param  hoursShouldBe [description]
+     * @param  hoursReal     [description]
+     * @return               [description]
+     */
+    public float getAcumulativeValueByWasteHours(float hoursIdeal, float hoursReal) {
+        float percentOfWasteHours = 0;
+        if (hoursIdeal != 0) {
+            float hoursIdealWithMinuts = hoursIdeal*2;
+            percentOfWasteHours = (hoursReal*100) / hoursIdealWithMinuts;
+            if (hoursReal > hoursIdealWithMinuts) {
+                float cent = percentOfWasteHours - 100;
+                percentOfWasteHours = (cent < 100) ? (100 - cent) : 0;
+            }
+        }
+
+        //System.out.println("real: " + hoursReal + " ideal: " + hoursIdeal*2 + " perc: " + percentOfWasteHours);
+        return percentOfWasteHours;
+    }
+
+    /**
+     * Get the sum of the all workload of the subject in the
+     * all study plan.
+     *
+     * @param  individual   the study plan.
+     * @param  subject      the subject to found.
+     * @return            [description]
+     */
+    public int getQttRealOfHours(GeneVectorIndividual individual, Subject subject) {
+        int individualLength = (int)individual.size();
+        int qttHoursTotal = 0;
+        int subjectId = subject.getId();
+
+        ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
+
+        Vector<Integer> periodsEmpty = new Vector<Integer>();
+
+        for (int i = 0; i < individualLength; i++) {
+            DayPlanGene gene = (DayPlanGene) individual.genome[i];
+
+            qttHoursTotal += getWorkloadOfTheSubject(gene.getMorning(), subjectId);
+            qttHoursTotal += getWorkloadOfTheSubject(gene.getAfternoon(), subjectId);
+            qttHoursTotal += getWorkloadOfTheSubject(gene.getNight(), subjectId);
+        }
+
+        return qttHoursTotal;
+    }
+
+    /**
+     * Get the workload of the subject passed by param.
+     *
+     * @param  subjectWorkloads     the set of subjectWorkloads.
+     * @param  subjectId            the id of the subject to be found.
+     *
+     * @return                      the workload or zero otherwise
+     */
+    public int getWorkloadOfTheSubject(ArrayList<SubjectWorkload> subjectWorkloads, int subjectId) {
+        for (SubjectWorkload sw: subjectWorkloads) {
+            if (sw.getSubject().getId() == subjectId) {
+                //is not permited one period has duplicated subjects. So just return if found.
+                return sw.getWorkload();
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Get the total of ideal hours to study a subject
+     * with their dificulty percent.
+     *
      * @return [description]
      */
-    public void subjectMoreDificultyNeedMoreTime() {
+    public int getQttIdealOfHours(int qttHoursAvailable, int percent) {
+        int qttIdealOfHous = (qttHoursAvailable * percent) / 100;
+        //System.out.println("qttHA: " + qttHoursAvailable + " percent: " + percent);
+
+        return qttIdealOfHous;
+    }
+
+    /**
+     * get the quantity of hours available in all study plan.
+     *
+     * @return the value of the hours available.
+     */
+    public int getQttHoursAvailable(GeneVectorIndividual individual) {
+        int individualLength = (int)individual.size();
+        ArrayList<Period> studyCycle = dayPeriodAvailable.getStudyCycle();
+        int studyCycleSize = studyCycle.size();
+        int cycleIt = 0;
+        int qttNothingPeriods = 0;
+        int qttSmallPeriods = 0;
+        for (int i = 0; i < individualLength; i++) {
+            Period period = studyCycle.get(cycleIt);
+            if (period.getMorning() == NOTHING) {
+                qttNothingPeriods++;
+            } else if (period.getMorning() == SMALL) {
+                qttSmallPeriods++;
+            }
+
+            if (period.getAfternoon() == NOTHING) {
+                qttNothingPeriods++;
+            } else if (period.getMorning() == SMALL) {
+                qttSmallPeriods++;
+            }
+
+            if (period.getNight() == NOTHING) {
+                qttNothingPeriods++;
+            } else if (period.getMorning() == SMALL) {
+                qttSmallPeriods++;
+            }
+
+            cycleIt++;
+            if(cycleIt == studyCycleSize) {
+                cycleIt = 0;
+            }
+        }
+
+        int qttHoursAvailable = (individualLength * 3) - (qttNothingPeriods + (qttSmallPeriods/2));
+        qttHoursAvailable *= 5; //qtt hours per period.
+        //System.out.println("avai: " + qttHoursAvailable + " noth: " + qttNothingPeriods);
+        return qttHoursAvailable;
+    }
+
+    /**
+     * Get dificulty percent in relation of the sum of
+     * all others dificulties.
+     *
+     * @param  dificulty        dificulty to get the sum.
+     * @param  dificultySum     sum of all dificulty.
+     * @return              [description]
+     */
+    public int getDificultyPercent(int dificulty, int dificultySum) {
+        int percent = (dificulty*100) / dificultySum;
+
+        return percent;
+    }
+
+    /**
+     * Get the sum of all dificulty of the subjects.
+     *
+     * @return [description]
+     */
+    public int getSumAllDificulty() {
+        int dificultySum = 0;
+
+        for (Subject sub: subjects) {
+            dificultySum += sub.getDificulty();
+        }
+
+        return dificultySum;
     }
 
     /**
@@ -1132,7 +1300,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             }
         }
 
-        return (float)acumulativeValue / (float)qtdPeriodsAvailable;
+        float total = (qtdPeriodsAvailable != 0) ? (float)acumulativeValue / (float)qtdPeriodsAvailable : 0;
+        return total;
     }
 
     /**
@@ -1157,11 +1326,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             hours.add(sw.getWorkload());
         }
         Collections.sort(hours);
-/*        System.out.print("array ");
-        for (Integer x: hours) {
-            System.out.print(x + " ");
-        }
-*/
+
         int hoursLength = hours.size();
         int max = hours.get(hoursLength - 1);
 //        System.out.println("\nL: " + hoursLength + " m: " + max);
