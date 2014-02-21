@@ -16,7 +16,7 @@ eval		= ec.simple.SimpleEvaluator
 stat		= ec.simple.SimpleStatistics
 exch		= ec.simple.SimpleExchanger
 
-generations				= 100
+generations				= 1000
 quit-on-run-complete	= true
 checkpoint				= false
 checkpoint-prefix		= ec
@@ -39,17 +39,17 @@ pop.subpop.0.species.genome-size	= 7
 #below is the per-gene crossover probability, not the probability that the entire individual will be crossed over.
 pop.subpop.0.species.crossover-prob	= 0.25
 pop.subpop.0.species.crossover-type	= any
-base.likelihood = 0.25
+base.likelihood = 0.5
 #each gene is only mutated with a certain probability
-pop.subpop.0.species.mutation-prob	= 0.25
+pop.subpop.0.species.mutation-prob	= 0.000009
 
-# Place on one line
+# Place on one line. The Genetic Algorithm pipeline way.
 pop.subpop.0.species.pipe					= ec.vector.breed.VectorMutationPipeline
 pop.subpop.0.species.pipe.source.0			= ec.vector.breed.VectorCrossoverPipeline
 pop.subpop.0.species.pipe.source.0.source.0 = ec.select.TournamentSelection
 pop.subpop.0.species.pipe.source.0.source.1 = ec.select.TournamentSelection
 
-select.tournament.size		= 2
+select.tournament.size = 2
 
 #
 # We specify our problem here
@@ -73,6 +73,16 @@ eval.problem.studentInformation 	= datastructure/StudentInformation.in
 pop.subpop.0.species.gene.courseInformation = datastructure/CourseInformation.in
 
 #
+# The configurations responsible for generate the charts.
+#
+
+stat.num-children = 1
+stat.child.0 = ec.app.aspga.charts.SimpleXYSeriesChartStatistics
+stat.child.0.title = Best of Generation
+stat.child.0.x-axis-label = generation
+stat.child.0.y-axis-label = fitness
+
+#
 # output  configurations
 #
 
@@ -80,8 +90,3 @@ pop.subpop.0.species.gene.courseInformation = datastructure/CourseInformation.in
 # print-unaccessed-params = true
 # print-unused-params = true
 
-stat.num-children = 1
-stat.child.0 = ec.app.aspga.charts.SimpleXYSeriesChartStatistics
-stat.child.0.title = Best of Generation
-stat.child.0.x-axis-label = generation
-stat.child.0.y-axis-label = fitness

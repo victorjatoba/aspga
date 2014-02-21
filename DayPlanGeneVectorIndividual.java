@@ -32,39 +32,47 @@ public class DayPlanGeneVectorIndividual extends GeneVectorIndividual {
 			state.output.fatal("Genome lengths are not the same for fixed-length vector crossover");
 		}
 
+		int point = 0;
 		switch(s.crossoverType) {
 			case VectorSpecies.C_ONE_POINT:
-	            perDayCrossover(state, thread, i);
-	            break;
+				point = state.random[thread].nextInt((genome.length / s.chunksize)+1);
+		        for(int x=0; x < point*s.chunksize; x++) {
+		            perDayCrossover(state, thread, i, x);
+				}
+	       		break;
 
 	        case VectorSpecies.C_TWO_POINT:
-				perPeriodCrossover(state, thread, i);
+		        point = state.random[thread].nextInt((genome.length / s.chunksize)+1);
+		        for(int x=0; x < point*s.chunksize; x++) {
+					perPeriodCrossover(state, thread, i);
+				}
 				break;
 
 			case VectorSpecies.C_ANY_POINT:
-				int crossoverType = state.random[thread].nextInt(2);
-				if(crossoverType == 0) {
-					perPeriodCrossover(state, thread, i);
-				} else {
-                	perDayCrossover(state, thread, i);
+
+		    	point = state.random[thread].nextInt((genome.length / s.chunksize)+1);
+		        for(int x=0; x < point*s.chunksize; x++) {
+					int crossoverType = state.random[thread].nextInt(2);
+					if(crossoverType == 0) {
+						perPeriodCrossover(state, thread, i);
+					} else {
+	                	perDayCrossover(state, thread, i, x);
+					}
+					//System.out.println("opa " + x);
 				}
 				break;
 		}
 
     }
 
-    public void perDayCrossover(EvolutionState state, int thread, GeneVectorIndividual ind) {
+    public void perDayCrossover(EvolutionState state, int thread, GeneVectorIndividual ind, int x) {
     	GeneVectorSpecies s = (GeneVectorSpecies) species;
         GeneVectorIndividual i = ind;
         Gene tmp;
-        int point;
 
-    	point = state.random[thread].nextInt((genome.length / s.chunksize)+1);
-        for(int x=0; x < point*s.chunksize; x++) {
 			tmp = i.genome[x];
 			i.genome[x] = genome[x];
 			genome[x] = tmp;
-		}
     }
 
     public void perPeriodCrossover(EvolutionState state, int thread, GeneVectorIndividual ind) {
@@ -76,8 +84,7 @@ public class DayPlanGeneVectorIndividual extends GeneVectorIndividual {
 
 		int periodOfTheDay = state.random[thread].nextInt(3);
 
-    	int point = state.random[thread].nextInt((genome.length / s.chunksize)+1);
-        for(int x=0; x < point*s.chunksize; x++) {
+
 	        if(periodOfTheDay == 0) {
 	            switchGeneIMorning(geneI, state, thread);
 	        } else if (periodOfTheDay == 1) {
@@ -85,7 +92,7 @@ public class DayPlanGeneVectorIndividual extends GeneVectorIndividual {
 	        } else {
 	            switchGeneINight(geneI, state, thread);
 	        }
-	    }
+
     }
 
     public void switchGeneIMorning(DayPlanGene geneI, EvolutionState state, int thread) {

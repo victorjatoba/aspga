@@ -55,13 +55,9 @@ public class DayPlanGene extends Gene {
 
         if (courseInformationInput == null) {
             state.output.error("CourseInformation File doesn't exist", base.push(P_COURSEINFORMATION));
-        } else {
-        	state.output.message(""+courseInformationInput);
         }
 
         Vector<String> courseInformationVector = convertFileToVectorString(courseInformationInput);
-
-        //printInputLines(courseInformationVector, "CourseInformation");
 
         this.subjects = fillSubjects(courseInformationVector, state);
 
@@ -201,7 +197,7 @@ public class DayPlanGene extends Gene {
 
         Boolean mutated = Boolean.TRUE;
 
-        int mutationType = state.random[thread].nextInt(5);
+        int mutationType = state.random[thread].nextInt(3);
         //mutationType = 4;
 
         int vectorsLength = morning.size() + afternoon.size() + night.size();
@@ -211,20 +207,22 @@ public class DayPlanGene extends Gene {
             mutated = insertSubjectWorkload(state, thread);
         } else if(mutationType == 1) {
 //            System.out.println("---1---");
-            mutated = removeSubjectWorkload(state, thread);
+            mutated = changeWorkload(state, thread);
         } else if(mutationType == 2) {
 //            System.out.println("---2---");
-            mutated = changeWorkload(state, thread);
-        } else if(mutationType == 3) {
-//            System.out.println("---3---");
             mutated = changeSubject(state, thread);
-        } else {
-//            System.out.println("---4---");
+        }
+/*        else if(mutationType == 3) {
+//            System.out.println("---2---");
+            mutated = removeSubjectWorkload(state, thread);
+        }
+        else {
+            System.out.println("---3---");
             Boolean changeW = changeWorkload(state, thread);
             Boolean changeS = changeSubject(state, thread);
             mutated = (changeW || changeS);
         }
-
+*/
         return mutated;
     }
 

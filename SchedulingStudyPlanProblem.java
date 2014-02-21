@@ -152,11 +152,12 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         float maxHour = notWasteAllTimeInTheSameSubject(individual);
         float leisure = hoursToLeisure(individual);
 
-        float fixed = (needMoreTime + fillPeriods + inappropriatePeriod + differentPlans)/4;
-        float hard = (alocateAll + hardSubject + gradually) / 3;
-        float soft = (leisure + maxHour) / 2;
+        float fixed = (alocateAll + fillPeriods + inappropriatePeriod + differentPlans)/4;
+        float hard = (hardSubject + needMoreTime) / 2;
+        float soft = (leisure + maxHour + gradually) / 3;
 
         float fitness = fixed + (hard * 0.7f) + (soft * 0.3f);
+        //fitness = differentPlans + 100;
 
         return fitness;
     }
