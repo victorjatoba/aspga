@@ -183,17 +183,17 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             subjectWorkloads.addAll(gene.getNight());
         }
 
-        ArrayList<Subject> subjectsAllreadyCounted = new ArrayList<Subject>();
+        ArrayList<Subject> subjectsAlreadyCounted = new ArrayList<Subject>();
         int countSubjects = 0;
         if (!subjectWorkloads.isEmpty()) {
             for (SubjectWorkload sw: subjectWorkloads) {
                 Subject subject = sw.getSubject();
-                if (!contains(subjectsAllreadyCounted, subject)) {
-                        subjectsAllreadyCounted.add(subject);
+                if (!contains(subjectsAlreadyCounted, subject)) {
+                        subjectsAlreadyCounted.add(subject);
                 }
             }
 
-            int qttSubjects = subjectsAllreadyCounted.size();
+            int qttSubjects = subjectsAlreadyCounted.size();
             acumulativeValue = getAcumulativeValueByAlocateAll(qttSubjects);
         }
 
@@ -740,7 +740,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *      20 >= n < 40      Easy/Medium
      *      40 >= n < 60      Medium
      *      60 >= n < 80      Hard/Medium
-     *      80 >= n < 100     Hard
+     *      80 >= n <= 100     Hard
      *
      * The difficulty classification as regard as period of the day.
      * If period of the day is...
@@ -749,21 +749,21 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *          20 >= n < 40      25
      *          40 >= n < 60      50
      *          60 >= n < 80      75
-     *          80 >= n < 100     100
+     *          80 >= n <= 100     100
      *
      *     MEDIUM:
      *          00 >= n < 20      25
      *          20 >= n < 40      75
      *          40 >= n < 60      100
      *          60 >= n < 80      75
-     *          80 >= n < 100     25
+     *          80 >= n <= 100     25
      *
      *     EASY:
      *          00 >= n < 20      100
      *          20 >= n < 40      75
      *          40 >= n < 60      50
      *          60 >= n < 80      25
-     *          80 >= n < 100     0
+     *          80 >= n <= 100     0
      *
      * @param  periodOfDificult     if is GOOD, MEDIUM or EASY.
      * @param  dificultyAverage     the difficulty average of the all subjects.
@@ -845,7 +845,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * Generate individuals that contains the max
      * number of distinct genes.
      *
-     * Classification: hard
+     * Classification: fixed
      *
      * @param  individual [description]
      * @return            the fitness value for this constraint.
@@ -887,7 +887,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
         int acumulativeValue = 0;
         int consideringPeriodsQtt = (totalPeriods/10);
-        if (qttRepetitivePeriods <= consideringPeriodsQtt*1) {
+        if (qttRepetitivePeriods <= consideringPeriodsQtt) {
             acumulativeValue = 100;
         } else if (qttRepetitivePeriods <= consideringPeriodsQtt*2) {
             acumulativeValue = 75;
@@ -1063,9 +1063,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         if (dayPeriodAvailable == NOTHING) {
             if (qtt == 0) {
                 acumulativeValue = 100;
-            } else if (qtt < 1) {
+            } else if (qtt <= 1) {
                 acumulativeValue = 25;
-            } else if (qtt < 2) {
+            } else if (qtt <= 2) {
                 acumulativeValue = 10;
             }
         } else if (dayPeriodAvailable == SMALL) {

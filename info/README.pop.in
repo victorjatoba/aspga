@@ -25,4 +25,4 @@
 	20 <= n < 40      Easy/Medium
 	40 <= n < 60      Medium
 	60 <= n < 80      Hard/Medium
-	80 <= n < 100     Hard
+	80 <= n <= 100     Hard
