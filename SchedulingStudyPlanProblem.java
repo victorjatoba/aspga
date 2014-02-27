@@ -160,6 +160,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         //fitness = differentPlans + 100;
 
         return fitness;
+        //return gradually+100;
     }
 
     /**
@@ -537,9 +538,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
     /**
      * Count the number of 1 exist in the especific period
-     * of the dificulty.
+     * of the dificulty. <br/>
      *
-     * Obs.: 1 signific that exist one period of the day empty.
+     * <br/>Obs.: 1 signific that exist one period of the day empty.
      * In the other words, this period not contains SubjectWorkloads.
      *
      * @param  period           {MEDIUM, HARD or EASY}
@@ -586,8 +587,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *          25      if is greater than the quarter of the total.
      *          0       otherwise.
      */
-    public int countAcumulativeValueByDifficulty(int amountFound, int total) {
-        int acumulativeValue = 0;
+    public float countAcumulativeValueByDifficulty(int amountFound, int total) {
+        float acumulativeValue = (total != 0) ? (amountFound*100)/total : 0;
+/*        float acumulativeValue = 0;
 
         if (total != 0) {
             float third = total * 0.75f;
@@ -604,7 +606,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
                 acumulativeValue = 25;
             }
         }
-
+*/
         //System.out.println("am: " + amountFound + " tl: " + total + " ac: " + acumulativeValue);
         return acumulativeValue;
     }
@@ -620,6 +622,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @param  difficultyType   the type to be compared.
      *
      * @return the number of difficulty type that allPeriods contain.
+     *
+     * @see {@link SubjectWorkload}
      */
     public int countSubjectsDifficultyBetween(ArrayList<ArrayList<SubjectWorkload> > allPeriods, int init, int end, char difficultyType) {
         int countDifficulty = 0;
