@@ -16,7 +16,7 @@ eval		= ec.simple.SimpleEvaluator
 stat		= ec.simple.SimpleStatistics
 exch		= ec.simple.SimpleExchanger
 
-generations				= 1000
+generations				= 10000
 quit-on-run-complete	= true
 checkpoint				= false
 checkpoint-prefix		= ec
@@ -27,7 +27,7 @@ stat.file		= $out.stat
 pop.subpops		= 1
 pop.subpop.0	= ec.Subpopulation
 
-pop.subpop.0.size 				= 100
+pop.subpop.0.size 				= 1000
 pop.subpop.0.duplicate-retries 	= 0
 pop.subpop.0.species 			= ec.vector.GeneVectorSpecies
 
@@ -40,8 +40,9 @@ pop.subpop.0.species.genome-size	= 7
 pop.subpop.0.species.crossover-prob	= 0.25
 pop.subpop.0.species.crossover-type	= any
 base.likelihood = 0.5
+
 #each gene is only mutated with a certain probability
-pop.subpop.0.species.mutation-prob	= 0.000009
+pop.subpop.0.species.mutation-prob	= 0.0000009
 
 # Place on one line. The Genetic Algorithm pipeline way.
 pop.subpop.0.species.pipe					= ec.vector.breed.VectorMutationPipeline
@@ -49,7 +50,7 @@ pop.subpop.0.species.pipe.source.0			= ec.vector.breed.VectorCrossoverPipeline
 pop.subpop.0.species.pipe.source.0.source.0 = ec.select.TournamentSelection
 pop.subpop.0.species.pipe.source.0.source.1 = ec.select.TournamentSelection
 
-select.tournament.size = 2
+select.tournament.size = 3
 
 #
 # We specify our problem here
