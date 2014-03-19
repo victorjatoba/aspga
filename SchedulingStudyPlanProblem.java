@@ -9,7 +9,6 @@ package ec.app.aspga;
 import ec.util.*;
 import ec.*;
 import ec.simple.*;
-import ec.vector.GeneVectorIndividual;
 import ec.util.*; //Parameter
 
 //Data packages
@@ -71,8 +70,15 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     PeriodAvailable dayPeriodAvailable;
     PeriodAvailable intelectualAvailable;
 
-    //GeneVectorIndividual individual;
-
+    /**
+     * Responsible to read the params and fill them attributes.
+     *
+     * @param state [description]
+     * @param base  [description]
+     *
+     * @see {@link EvolutionState}
+     * @see {@link Parameter}
+     */
     public void setup (  final EvolutionState state, final Parameter base) {
 
         File courseInformationInput     = null;
@@ -92,8 +98,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         Vector<String> dayPeriodAvailableVector = convertFileToVectorString(dayPeriodAvailableInput);
         Vector<String> studentInformationVector = convertFileToVectorString(studentInformationInput);
 
-        //printInputLines(courseInformationVector, "CourseInformation");
-
         this.subjects = fillSubjects(courseInformationVector, state);
         this.student = fillStudent(studentInformationVector, state);
         this.dayPeriodAvailable = fillPeriodAvailable(dayPeriodAvailableVector, state);
@@ -101,8 +105,18 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     }
 
     /**
-    *   Implement the ftness function
-    */
+     * Implement the logic of the evaluete process.
+     *
+     * @param state         [description]
+     * @param ind           [description]
+     * @param subpopulation [description]
+     * @param threadnum     [description]
+     *
+     * @see {@link EvolutionState}
+     * @see {@link Individual}
+     * @see {@link DayPlanGeneVectorIndividual}
+     * @see {@link SimpleFitness}
+     */
     public void evaluate(   final EvolutionState state,
                             final Individual ind,
                             final int subpopulation,
@@ -110,11 +124,11 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     {
         if (ind.evaluated) return;
 
-        if (!(ind instanceof GeneVectorIndividual)) {
-            state.output.fatal("Whoa!  It's not a GeneVectorIndividual!!!",null);
+        if (!(ind instanceof DayPlanGeneVectorIndividual)) {
+            state.output.fatal("Whoa!  It's not a DayPlanGeneVectorIndividual!!!",null);
         }
 
-        GeneVectorIndividual individual = (GeneVectorIndividual)ind;
+        DayPlanGeneVectorIndividual individual = (DayPlanGeneVectorIndividual)ind;
 
         if (!(individual.fitness instanceof SimpleFitness)) {
             state.output.fatal("Whoa!  It's not a SimpleFitness!!!",null);
@@ -132,35 +146,53 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     }
 
     /**
-     * Responsible for calculate the fitness value.
+     * Responsible for to calculate the fitness value of the individual
+     * in related of the contraints below. <br/>
+     *
+     * <br/>Constraints classification: <br/>
+     * <br/>FIXED: <br/>
+     *     {@link SchedulingStudyPlanProblem#alocateAllSubjects} <br/>
+     *     {@link SchedulingStudyPlanProblem#subjectInInappropriatePeriod} <br/>
+     *
+     * <br/>HARD: <br/>
+     *     {@link SchedulingStudyPlanProblem#fillPeriodsAvailable} <br/>
+     *     {@link SchedulingStudyPlanProblem#hardSubjectInEasyPeriod} <br/>
+     *     {@link SchedulingStudyPlanProblem#subjectMoreDificultyNeedMoreTime} <br/>
+     *     {@link SchedulingStudyPlanProblem#haveDifferentDayPlans} <br/>
+     *
+     * <br/>SOFT: <br/>
+     *     {@link SchedulingStudyPlanProblem#hoursToLeisure} <br/>
+     *     {@link SchedulingStudyPlanProblem#notWasteAllTimeInTheSameSubject} <br/>
+     *     {@link SchedulingStudyPlanProblem#toStudyGradually} <br/>
      *
      * @param  individual   the curent individual to be calculated.
      *
      * @return <code>float</code>   the fitness value.
+     *
+     * @see {@link DayPlanGeneVectorIndividual}
      */
-    public float calculateFitnessValue(GeneVectorIndividual individual) {
+    public float calculateFitnessValue(DayPlanGeneVectorIndividual individual) {
         //float maxSix = maxSixHoursPerPeriod(individual);
+
         float alocateAll = alocateAllSubjects(individual);
-        float fillPeriods = fillPeriodsAvailable(individual);
         float inappropriatePeriod = subjectInInappropriatePeriod(individual);
+
+        float fillPeriods = fillPeriodsAvailable(individual);
+        float hardSubject = hardSubjectInEasyPeriod(individual);
+        float needMoreTime = subjectMoreDificultyNeedMoreTime(individual);
         float differentPlans = haveDifferentDayPlans(individual);
 
-        float needMoreTime = subjectMoreDificultyNeedMoreTime(individual);
-        float hardSubject = hardSubjectInEasyPeriod(individual);
-
-        float gradually = toStudyGradually(individual);
-        float maxHour = notWasteAllTimeInTheSameSubject(individual);
         float leisure = hoursToLeisure(individual);
+        float maxHour = notWasteAllTimeInTheSameSubject(individual);
+        float gradually = toStudyGradually(individual);
 
         float fixed = (alocateAll + inappropriatePeriod) / 2;
         float hard = (fillPeriods + hardSubject + needMoreTime + differentPlans) / 4;
         float soft = (leisure + maxHour + gradually) / 3;
 
         float fitness = fixed + (hard * 0.7f) + (soft * 0.3f);
-        //fitness = differentPlans + 100;
 
         return fitness;
-        //return gradually+100;
     }
 
     /**
@@ -175,9 +207,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @see {@link SubjectWorkload}
      * @see {@link Subject}
      * @see {@link DayPlanGene}
-     * @see {@link GeneVectorIndividual}
+     * @see {@link DayPlanGeneVectorIndividual}
      */
-    public float alocateAllSubjects(GeneVectorIndividual individual) {
+    public float alocateAllSubjects(DayPlanGeneVectorIndividual individual) {
         float acumulativeValue = 0;
         int individualLength = (int)individual.size();
 
@@ -216,7 +248,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @param  qttSubjectsFound [description]
      *
-     * @return                  [description]
+     * @return <code>float</code>   the acumulative value.
      */
     public float getAcumulativeValueByAlocateAll(int qttSubjectsFound) {
         int qttSubjects = subjects.size();
@@ -255,7 +287,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @see {@link Subject}
      */
-    public float subjectMoreDificultyNeedMoreTime(GeneVectorIndividual individual) {
+    public float subjectMoreDificultyNeedMoreTime(DayPlanGeneVectorIndividual individual) {
         float acumulativeValue = 0;
 
         int sumAllDificulties = getSumAllDificulty();
@@ -274,9 +306,10 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * Get the percent of the real hours of the subject in relation
      * of the ideal hours that this subject should be.
      *
-     * @param  hoursShouldBe [description]
-     * @param  hoursReal     [description]
-     * @return               [description]
+     * @param  hoursIdeal    the quantity of ideal hours to be used by the subject analysed.
+     * @param  hoursReal     the quantity of real hours used by the subject analysed.
+     *
+     * @return <code>float</code>   the percent of proximity between the params.
      */
     public float getAcumulativeValueByWasteHours(float hoursIdeal, float hoursReal) {
         float percentOfWasteHours = 0;
@@ -298,11 +331,11 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * all study plan.
      *
      * @param  individual   the study plan.
-     * @param  subject      the subject to found.
+     * @param  subject      the subject to be found.
      *
      * @return            [description]
      */
-    public int getQttRealOfHours(GeneVectorIndividual individual, Subject subject) {
+    public int getQttRealOfHours(DayPlanGeneVectorIndividual individual, Subject subject) {
         int individualLength = (int)individual.size();
         int qttHoursTotal = 0;
         int subjectId = subject.getId();
@@ -342,10 +375,17 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     }
 
     /**
-     * Get the total of ideal hours to study a subject
-     * with their dificulty percent.
      *
      * @return [description]
+     */
+    /**
+     * Get the total of ideal hours to study a subject
+     * with its dificulty percent.
+     *
+     * @param  qttHoursAvailable    the total of hours available to study.
+     * @param  percent              the percent of the subject dificulty.
+     *
+     * @return <code>float</code>   the percent of proximity between the params.
      */
     public int getQttIdealOfHours(int qttHoursAvailable, int percent) {
         int qttIdealOfHous = (qttHoursAvailable * percent) / 100;
@@ -357,9 +397,13 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     /**
      * get the quantity of hours available in all study plan.
      *
+     * @param  individual   the study plan to be get the qtt of hours available.
+     *
      * @return the value of the hours available.
+     *
+     * @see {@link DayPlanGeneVectorIndividual}
      */
-    public int getQttHoursAvailable(GeneVectorIndividual individual) {
+    public int getQttHoursAvailable(DayPlanGeneVectorIndividual individual) {
         int individualLength = (int)individual.size();
         ArrayList<Period> studyCycle = dayPeriodAvailable.getStudyCycle();
         int studyCycleSize = studyCycle.size();
@@ -416,7 +460,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     /**
      * Get the sum of all dificulty of the subjects.
      *
-     * @return [description]
+     * @return the sum.
      */
     public int getSumAllDificulty() {
         int dificultySum = 0;
@@ -443,9 +487,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *
     * @see {@link SubjectWorkload}
     * @see {@link DayPlanGene}
-    * @see {@link GeneVectorIndividual}
+    * @see {@link DayPlanGeneVectorIndividual}
     */
-    public float toStudyGradually(GeneVectorIndividual individual) {
+    public float toStudyGradually(DayPlanGeneVectorIndividual individual) {
         int acumulativeValue = 0;
         int qtdPerids = (int)individual.size();
 
@@ -526,6 +570,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @param  end              the last position.
      *
      * @return the number of SW found.
+     *
+     * @see {@link SubjectWorkload}
+     * @see {@link ArrayList}
      */
     public int countSWByPeriod(ArrayList<ArrayList<SubjectWorkload> > allPeriods, int init, int end) {
         int amountSWByPeriod = 0;
@@ -581,11 +628,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @param  amountFound  the amount to be compair.
      * @param  total        the total to be compair.
      *
-     * @return  100     if is the same of the total.
-     *          75      if is greater than the third of the total.
-     *          50      if is greater than the half of the total.
-     *          25      if is greater than the quarter of the total.
-     *          0       otherwise.
+     * @return <code>float</code> the percent of proximity between the params.
      */
     public float countAcumulativeValueByDifficulty(int amountFound, int total) {
         float acumulativeValue = (total != 0) ? (amountFound*100)/total : 0;
@@ -684,10 +727,10 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *
     * @see {@link SubjectWorkload}
     * @see {@link DayPlanGene}
-    * @see {@link GeneVectorIndividual}
+    * @see {@link DayPlanGeneVectorIndividual}
     * @see {@link Period}
     */
-    public float hardSubjectInEasyPeriod(GeneVectorIndividual individual) {
+    public float hardSubjectInEasyPeriod(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
         int cycleIt = 0;
         ArrayList<Period> studyCycle = this.intelectualAvailable.getStudyCycle();
@@ -806,6 +849,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     public int getAcumulativeValueByDificulty(char periodAvailable, float dificultyAverage, ArrayList<SubjectWorkload> subjectWorkloads) {
         int acumulativeValue = 0;
 
+        //TODO to make these verifications more easy, simple verifying the percent using "Regra de 3"
         if (periodAvailable == GOOD) {
             if (dificultyAverage >= 80f) {
                 acumulativeValue = 100;
@@ -855,8 +899,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @param  subjectWorkloads     the period.
      *
-     * @return  <code>true</code>   if exist.
-     *          <code>false</code>  otherwise.
+     * @return
+     *         <code>true</code>   if exist. <br/>
+     *         <code>false</code>  otherwise.
      */
     public Boolean isFakeMedium(ArrayList<SubjectWorkload> subjectWorkloads) {
         Boolean isFake = Boolean.FALSE;
@@ -884,9 +929,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @see {@link SubjectWorkload}}
      * @see {@link DayPlanGene}
-     * @see {@link GeneVectorIndividual}
+     * @see {@link DayPlanGeneVectorIndividual}
      */
-    public float haveDifferentDayPlans(GeneVectorIndividual individual) {
+    public float haveDifferentDayPlans(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
         int acumulativeValue = 0;
 
@@ -919,22 +964,25 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         return acumulativeValue;
     }
 
+    /**
+     * The cumulative value is then given by subtracting 100 by the percentage of
+     * similarity between the quantity of equal periods and total of the periods
+     * not empty. This means that if the plan has repeated 10 times and 100
+     * non-peak periods, the percentage of closeness is 10%, then the cumulative
+     * value is 90, which is the subtraction 100 - 10.
+     *
+     * @param  qttRepetitivePeriods     quantity of equal periods.
+     * @param  totalPeriods             total of the periods not empty.
+     *
+     * @return <code>int</code> the acumulative value from this constraint.
+     */
     public int getAcumulativeValueByDistinctPlans(int qttRepetitivePeriods, int totalPeriods) {
 
         int acumulativeValue = 0;
         int consideringPeriodsQtt = (totalPeriods/10);
-        if (qttRepetitivePeriods <= consideringPeriodsQtt) {
-            acumulativeValue = 100;
-        } else if (qttRepetitivePeriods <= consideringPeriodsQtt*2) {
-            acumulativeValue = 75;
-        } else if (qttRepetitivePeriods <= consideringPeriodsQtt*3) {
-            acumulativeValue = 50;
-        } else if (qttRepetitivePeriods <= consideringPeriodsQtt*4) {
-            acumulativeValue = 25;
-        }
 
-        //System.out.println("qrp " + qttRepetitivePeriods + " cpq " + consideringPeriodsQtt + " tp " + totalPeriods);
-        //System.out.println("acc " + acumulativeValue);
+        int percentOfDistinctPeriods = (qttRepetitivePeriods * 100) / totalPeriods;
+        acumulativeValue = 100 - percentOfDistinctPeriods;
 
         return acumulativeValue;
     }
@@ -951,12 +999,15 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     }
 
     /**
-     * Verify the periods are equals.
+     * Verify if the periods are equals.
      *
-     * @param  periodA [description]
-     * @param  periodB [description]
+     * @param  periodA  period of the day A
+     * @param  periodB  period of the day B
      *
-     * @return         [description]
+     * @return
+     *         <code>true</code>   if the periods are equals. <br/>
+     *         <code>false</code>  otherwise.
+     *
      */
     public Boolean equalPeriods(ArrayList<SubjectWorkload> periodA, ArrayList<SubjectWorkload> periodB) {
         Boolean equals = Boolean.TRUE;
@@ -964,9 +1015,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             for (int i = 0; i < periodA.size(); i++) {
                 SubjectWorkload subjectWorkloadA = periodA.get(i);
                 SubjectWorkload subjectWorkloadB = periodB.get(i);
-
-                //System.out.println(subjectWorkloadA.getWorkload() +" == "+ subjectWorkloadB.getWorkload());
-                //System.out.println(subjectWorkloadA.getSubject().getId() +" == "+ subjectWorkloadB.getSubject().getId());
 
                 //Verify the workloads and ids
                 if ( subjectWorkloadA.getWorkload() != subjectWorkloadB.getWorkload() ||
@@ -995,9 +1043,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @return <code>float</code>   the acumulative value.
      *
      * @see {@link DayPlanGene}
-     * @see {@link GeneVectorIndividual}
+     * @see {@link DayPlanGeneVectorIndividual}
      */
-    public float fillPeriodsAvailable(GeneVectorIndividual individual) {
+    public float fillPeriodsAvailable(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
         int cycleIt = 0;
         ArrayList<Period> studyCycle = this.dayPeriodAvailable.getStudyCycle();
@@ -1166,14 +1214,15 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *
     * @param individual     the study plan.
     *
-    * @return  <code>true</code>   if the constraint was attended.
-    *          <code>false</code>  otherwise.
+    * @return
+    *         <code>true</code>   if the constraint was attended. <br/>
+    *         <code>false</code>  otherwise.
     *
     * @see {@link Period}
     * @see {@link DayPlanGene}
-    * @see {@link GeneVectorIndividual}
+    * @see {@link DayPlanGeneVectorIndividual}
     */
-    public float subjectInInappropriatePeriod(GeneVectorIndividual individual) {
+    public float subjectInInappropriatePeriod(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
         int cycleIt = 0;
         ArrayList<Period> studyCycle = this.dayPeriodAvailable.getStudyCycle();
@@ -1242,9 +1291,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     * @see {@link SubjectWorkload}
     * @see {@link Period}
     * @see {@link DayPlanGene}
-    * @see {@link GeneVectorIndividual}
+    * @see {@link DayPlanGeneVectorIndividual}
     */
-    public float hoursToLeisure(GeneVectorIndividual individual) {
+    public float hoursToLeisure(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
         int cycleIt = 0;
         ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
@@ -1332,10 +1381,10 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *
     * @see {@link SubjectWorkload}
     * @see {@link DayPlanGene}
-    * @see {@link GeneVectorIndividual}
+    * @see {@link DayPlanGeneVectorIndividual}
     * @see {@link Period}
     */
-    public float notWasteAllTimeInTheSameSubject(GeneVectorIndividual individual) {
+    public float notWasteAllTimeInTheSameSubject(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
         int acumulativeValue = 0;
         int qtdPeriodsAvailable = 0;
@@ -1416,7 +1465,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     * @return  <code>true</code>   if the constraint was attended.
     *          <code>false</code>  otherwise.
     */
-    public float maxSixHoursPerPeriod(GeneVectorIndividual individual) {
+    public float maxSixHoursPerPeriod(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
 
         int qtdPeriodsAvailable = 0;
@@ -1482,12 +1531,14 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             for (String line: periodAvailables) {
                 String[] periodAvailablesInfo = line.split(" ");
 
-                Period period = new Period();
-                period.setMorning(periodAvailablesInfo[0].charAt(0));
-                period.setAfternoon(periodAvailablesInfo[1].charAt(0));
-                period.setNight(periodAvailablesInfo[2].charAt(0));
+                if (periodAvailablesInfo != null && periodAvailablesInfo.length >= 3) {
+                    Period period = new Period();
+                    period.setMorning(periodAvailablesInfo[0].charAt(0));
+                    period.setAfternoon(periodAvailablesInfo[1].charAt(0));
+                    period.setNight(periodAvailablesInfo[2].charAt(0));
 
-                studyCycle.add(period);
+                    studyCycle.add(period);
+                }
             }
         } else {
             state.output.error("SSPP| Error: The periodAvailables information are null!");
@@ -1509,10 +1560,14 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             for (String line: studentIn) {
                 String[] studentInfo = line.split(" ");
 
-                student.setName(studentInfo[0]);
-                String hoursToLeisureStr = studentInfo[1];
-                int hoursToLeisure = Integer.parseInt(hoursToLeisureStr);
-                student.setHoursToLeisure(hoursToLeisure);
+                if (studentInfo != null && studentInfo.length >= 2) {
+                    student.setName(studentInfo[0]);
+                    String hoursToLeisureStr = studentInfo[1];
+                    int hoursToLeisure = Integer.parseInt(hoursToLeisureStr);
+                    student.setHoursToLeisure(hoursToLeisure);
+                } else {
+                    state.output.error("SSPP| Error: The Student information are null or incomplete!");
+                }
             }
         } else {
             state.output.error("SSPP| Error: The Student information are null!");
@@ -1537,16 +1592,16 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             for (String line: subjectsIn) {
                 String[] subjectDificulty = line.split(" ");
 
-                Subject subject = new Subject();
-                subject.setName(subjectDificulty[0]);
-                String dificultyStr = subjectDificulty[1];
-                int dificulty = Integer.parseInt(dificultyStr);
+                if (subjectDificulty != null && subjectDificulty.length >= 2) {
+                    Subject subject = new Subject();
+                    subject.setName(subjectDificulty[0]);
+                    String dificultyStr = subjectDificulty[1];
+                    int dificulty = Integer.parseInt(dificultyStr);
 
-                //int dificulty = Character.getNumericValue(dificultyChar);
-                //int dificulty = dificultyChar - '0';
-                subject.setDificulty(dificulty);
-                subject.setId(i++);
-                subjects.add(subject);
+                    subject.setDificulty(dificulty);
+                    subject.setId(i++);
+                    subjects.add(subject);
+                }
             }
         } else {
             state.output.error("SSPP| Error: The vector of Subjects are null!");
