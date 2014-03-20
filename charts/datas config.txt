@@ -1,0 +1,155 @@
+__________________________________________________________________________
+_________________________INPUT TESTS______________________________________
+
+---- DAY PERIOD AVAILABLE ----
+
+[12h/dia] [A]
+N N S
+N N S
+N N S
+N N S
+N N S
+N B S
+B B S
+
+[8h/dia] [B]
+N N B
+N N B
+N N B
+N N B
+N N B
+S B B
+S B B
+
+[4h/dia] [C]
+N B B
+N B B
+N B B
+N B B
+N B B
+B B B
+B B B
+
+
+---- INTELECTUAL AVAILABLE ----
+
+[PERFIL 1] [D]
+B M G
+B M G
+B M G
+B M G
+B M G
+B M G
+B M G
+
+[PERFIL 2] [E]
+G M B
+G M B
+G M B
+G M B
+G M B
+G M B
+G M B
+
+
+----SUBJECTS INPUT----
+
+[15 Matérias] [F]
+Matéria1	100
+Matéria2	100
+Matéria3	80
+Matéria4	70
+Matéria5	70
+Matéria6	60
+Matéria7	50
+Matéria8	50
+Matéria9	40
+Matéria10	30
+Matéria11	30
+Matéria12	20
+Matéria13	10
+Matéria14	10
+Matéria15	0
+
+[06 Matérias] [G]
+Matéria1	100
+Matéria2	70
+Matéria3	50
+Matéria4	35
+Matéria5	20
+Matéria6	8
+__________________________________________________________________________
+__________________________________________________________________________
+
+
+
+
+
+
+
+
+
+
+
+Portugues 60 70 50
+Matematica 75 100	50
+Bloco 1 80 60 100
+Bloco 2 45 40 50
+Bloco 3 55 60 50
+
+
+
+[H]Algorithm 100
+[H]AI 100
+[H]Data_Structured 80
+[H]Database 70
+[H]Math 70
+[M]Algorithm 60
+[M]AI 50
+[M]Data_Structured 50
+[M]Database 40
+[M]Math 30
+[E]Algorithm 30
+[E]AI 20
+[E]Data_Structured 10
+[E]Database 10
+[E]Math 0
+
+
+
+
+
+
+N N B
+N N B
+N N B
+N N B
+N N B
+S S S
+S S S
+N N B
+N N B
+N N B
+N N B
+N N B
+S S S
+S S S
+N N B
+N N B
+N N B
+N N B
+N N B
+S S S
+S S S
+N N B
+N N B
+N N B
+N N B
+N N B
+S S S
+S S S
+S S S
+S S S
+
+
+

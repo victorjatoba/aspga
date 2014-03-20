@@ -631,25 +631,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @return <code>float</code> the percent of proximity between the params.
      */
     public float countAcumulativeValueByDifficulty(int amountFound, int total) {
+
         float acumulativeValue = (total != 0) ? (amountFound*100)/total : 0;
-/*        float acumulativeValue = 0;
-
-        if (total != 0) {
-            float third = total * 0.75f;
-            float half = total * 0.5f;
-            float quarter = total * 0.25f;
-
-            if (amountFound == total) {
-                acumulativeValue = 100;
-            } else if (amountFound > third) {
-                acumulativeValue = 75;
-            } else if (amountFound >= half) {
-                acumulativeValue = 50;
-            } else if (amountFound > quarter) {
-                acumulativeValue = 25;
-            }
-        }
-*/
         //System.out.println("am: " + amountFound + " tl: " + total + " ac: " + acumulativeValue);
         return acumulativeValue;
     }
