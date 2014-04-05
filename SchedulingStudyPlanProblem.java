@@ -1,15 +1,12 @@
 /*
-  Copyright 2013 by Victor Jatoba
+  Copyright 2014 by Victor Jatoba
   Licensed under the Academic Free License version 3.0
-  See the file "LICENSE" for more information
 */
-
 
 package ec.app.aspga;
 import ec.util.*;
 import ec.*;
 import ec.simple.*;
-import ec.util.*; //Parameter
 
 //Data packages
 import ec.app.aspga.Student;
@@ -17,32 +14,23 @@ import ec.app.aspga.Subject;
 
 //Java Packages
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
 import java.util.Vector;
 import java.util.ArrayList;
-//import java.util.Array;
-import java.lang.Character;
 import java.util.Collections;
 
 /**
- * SchedulingStudyPlanProblem.java
+ * The main evolutionary class. This, is implemented
+ * all the evolution logic (The fitness function)
+ * to scoring the individuals of the
+ * actual population.
  *
- * Modified: Mon Nov 28 02:36 2013
- * By: Victor Jatoba
+ * @author Victor Jatoba
+ * @version Fri Mar 14 03:26 2014
  */
-
-/**
- * @author victorjatoba
- * @version 1.0
- */
-
 public class SchedulingStudyPlanProblem extends Problem implements SimpleProblemForm
 {
     private static final long serialVersionUID = 1;
@@ -76,8 +64,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @param state [description]
      * @param base  [description]
      *
-     * @see {@link EvolutionState}
-     * @see {@link Parameter}
+     * @see EvolutionState
+     * @see Parameter
      */
     public void setup (  final EvolutionState state, final Parameter base) {
 
@@ -112,10 +100,10 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      * @param subpopulation [description]
      * @param threadnum     [description]
      *
-     * @see {@link EvolutionState}
-     * @see {@link Individual}
-     * @see {@link DayPlanGeneVectorIndividual}
-     * @see {@link SimpleFitness}
+     * @see EvolutionState
+     * @see Individual
+     * @see DayPlanGeneVectorIndividual
+     * @see SimpleFitness
      */
     public void evaluate(   final EvolutionState state,
                             final Individual ind,
@@ -169,7 +157,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @return <code>float</code>   the fitness value.
      *
-     * @see {@link DayPlanGeneVectorIndividual}
+     * @see DayPlanGeneVectorIndividual
      */
     public float calculateFitnessValue(DayPlanGeneVectorIndividual individual) {
         //float maxSix = maxSixHoursPerPeriod(individual);
@@ -204,18 +192,16 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @return <code>float</code>   the acumulative value.
      *
-     * @see {@link SubjectWorkload}
-     * @see {@link Subject}
-     * @see {@link DayPlanGene}
-     * @see {@link DayPlanGeneVectorIndividual}
+     * @see SubjectWorkload
+     * @see Subject
+     * @see DayPlanGene
+     * @see DayPlanGeneVectorIndividual
      */
     public float alocateAllSubjects(DayPlanGeneVectorIndividual individual) {
         float acumulativeValue = 0;
         int individualLength = (int)individual.size();
 
         ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
-
-        Vector<Integer> periodsEmpty = new Vector<Integer>();
 
         for (int i = 0; i < individualLength; i++) {
             DayPlanGene gene = (DayPlanGene) individual.genome[i];
@@ -226,7 +212,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         }
 
         ArrayList<Subject> subjectsAlreadyCounted = new ArrayList<Subject>();
-        int countSubjects = 0;
         if (!subjectWorkloads.isEmpty()) {
             for (SubjectWorkload sw: subjectWorkloads) {
                 Subject subject = sw.getSubject();
@@ -285,7 +270,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @return <code>float</code>   the acumulative value.
      *
-     * @see {@link Subject}
+     * @see Subject
      */
     public float subjectMoreDificultyNeedMoreTime(DayPlanGeneVectorIndividual individual) {
         float acumulativeValue = 0;
@@ -339,10 +324,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         int individualLength = (int)individual.size();
         int qttHoursTotal = 0;
         int subjectId = subject.getId();
-
-        ArrayList<SubjectWorkload> subjectWorkloads = new ArrayList<SubjectWorkload>();
-
-        Vector<Integer> periodsEmpty = new Vector<Integer>();
 
         for (int i = 0; i < individualLength; i++) {
             DayPlanGene gene = (DayPlanGene) individual.genome[i];
@@ -401,7 +382,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @return the value of the hours available.
      *
-     * @see {@link DayPlanGeneVectorIndividual}
+     * @see DayPlanGeneVectorIndividual
      */
     public int getQttHoursAvailable(DayPlanGeneVectorIndividual individual) {
         int individualLength = (int)individual.size();
@@ -485,9 +466,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *
     * @return <code>float</code>   the acumulative value.
     *
-    * @see {@link SubjectWorkload}
-    * @see {@link DayPlanGene}
-    * @see {@link DayPlanGeneVectorIndividual}
+    * @see SubjectWorkload
+    * @see DayPlanGene
+    * @see DayPlanGeneVectorIndividual
     */
     public float toStudyGradually(DayPlanGeneVectorIndividual individual) {
         int acumulativeValue = 0;
@@ -571,8 +552,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @return the number of SW found.
      *
-     * @see {@link SubjectWorkload}
-     * @see {@link ArrayList}
+     * @see SubjectWorkload
+     * @see ArrayList
      */
     public int countSWByPeriod(ArrayList<ArrayList<SubjectWorkload> > allPeriods, int init, int end) {
         int amountSWByPeriod = 0;
@@ -649,7 +630,7 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @return the number of difficulty type that allPeriods contain.
      *
-     * @see {@link SubjectWorkload}
+     * @see SubjectWorkload
      */
     public int countSubjectsDifficultyBetween(ArrayList<ArrayList<SubjectWorkload> > allPeriods, int init, int end, char difficultyType) {
         int countDifficulty = 0;
@@ -708,10 +689,10 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *
     * @return <code>float</code>   the acumulative value.
     *
-    * @see {@link SubjectWorkload}
-    * @see {@link DayPlanGene}
-    * @see {@link DayPlanGeneVectorIndividual}
-    * @see {@link Period}
+    * @see SubjectWorkload
+    * @see DayPlanGene
+    * @see DayPlanGeneVectorIndividual
+    * @see Period
     */
     public float hardSubjectInEasyPeriod(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
@@ -822,12 +803,12 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *          60 >= n < 80      25
      *          80 >= n <= 100     0
      *
-     * @param  periodOfDificult     if is GOOD, MEDIUM or EASY.
+     * @param  periodAvailable     if is GOOD, MEDIUM or EASY.
      * @param  dificultyAverage     the difficulty average of the all subjects.
      *
      * @return  the acumulative value as regard as table classification above.
      *
-     * @see {@link Period}
+     * @see Period
      */
     public int getAcumulativeValueByDificulty(char periodAvailable, float dificultyAverage, ArrayList<SubjectWorkload> subjectWorkloads) {
         int acumulativeValue = 0;
@@ -876,8 +857,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
 
     /**
      * Search if the period contains subjects that
-     * have distinct dificulty. In other words,
-     * if exist subjets hard and easy in the same
+     * have distinct difficulty. In other words,
+     * if exist subjects hard and easy in the same
      * period.
      *
      * @param  subjectWorkloads     the period.
@@ -910,9 +891,9 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @return <code>float</code>   the acumulative value.
      *
-     * @see {@link SubjectWorkload}}
-     * @see {@link DayPlanGene}
-     * @see {@link DayPlanGeneVectorIndividual}
+     * @see SubjectWorkload
+     * @see DayPlanGene
+     * @see DayPlanGeneVectorIndividual
      */
     public float haveDifferentDayPlans(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
@@ -962,9 +943,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     public int getAcumulativeValueByDistinctPlans(int qttRepetitivePeriods, int totalPeriods) {
 
         int acumulativeValue = 0;
-        int consideringPeriodsQtt = (totalPeriods/10);
-
         int percentOfDistinctPeriods = (qttRepetitivePeriods * 100) / totalPeriods;
+
         acumulativeValue = 100 - percentOfDistinctPeriods;
 
         return acumulativeValue;
@@ -1025,8 +1005,8 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
      *
      * @return <code>float</code>   the acumulative value.
      *
-     * @see {@link DayPlanGene}
-     * @see {@link DayPlanGeneVectorIndividual}
+     * @see DayPlanGene
+     * @see DayPlanGeneVectorIndividual
      */
     public float fillPeriodsAvailable(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
@@ -1195,15 +1175,18 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *
     * <br/>Classification: Fixed Constraint.<br/>
     *
+    * <br/><b>NOTE</b>: Maybe should be better verify in relation of quantity of
+    * hours and not in relation of quantity of subjects.
+    *
     * @param individual     the study plan.
     *
     * @return
     *         <code>true</code>   if the constraint was attended. <br/>
     *         <code>false</code>  otherwise.
     *
-    * @see {@link Period}
-    * @see {@link DayPlanGene}
-    * @see {@link DayPlanGeneVectorIndividual}
+    * @see Period
+    * @see DayPlanGene
+    * @see DayPlanGeneVectorIndividual
     */
     public float subjectInInappropriatePeriod(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
@@ -1271,10 +1254,10 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *
     * @return <code>float</code>   the acumulative value.
     *
-    * @see {@link SubjectWorkload}
-    * @see {@link Period}
-    * @see {@link DayPlanGene}
-    * @see {@link DayPlanGeneVectorIndividual}
+    * @see SubjectWorkload
+    * @see Period
+    * @see DayPlanGene
+    * @see DayPlanGeneVectorIndividual
     */
     public float hoursToLeisure(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
@@ -1312,9 +1295,6 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
         for (SubjectWorkload sw: subjectWorkloads) {
             hoursSum += sw.getWorkload();
         }
-
-        DayPlanGene gene;
-        Period period;
 
         int qtdPeriodsAlocated = ((int)individualLength*3) - qtdNothingPeriods;
         //System.out.println("qtdPeriodsAlocated: " + qtdPeriodsAlocated + " qtdNothingPeriods: " + qtdNothingPeriods);
@@ -1362,10 +1342,10 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
     *
     * @return <code>float</code>   the acumulative value.
     *
-    * @see {@link SubjectWorkload}
-    * @see {@link DayPlanGene}
-    * @see {@link DayPlanGeneVectorIndividual}
-    * @see {@link Period}
+    * @see SubjectWorkload
+    * @see DayPlanGene
+    * @see DayPlanGeneVectorIndividual
+    * @see Period
     */
     public float notWasteAllTimeInTheSameSubject(DayPlanGeneVectorIndividual individual) {
         long individualLength = individual.size();
@@ -1379,24 +1359,45 @@ public class SchedulingStudyPlanProblem extends Problem implements SimpleProblem
             period = gene.getMorning();
             if (!period.isEmpty()) {
                 qtdPeriodsAvailable++;
-                acumulativeValue += getAcumulativeValueByMaxHour(period);
+                acumulativeValue += getAcumulativeValueByMoreThanOneSubject(period.size());
             }
 
             period = gene.getAfternoon();
             if (!period.isEmpty()) {
                 qtdPeriodsAvailable++;
-                acumulativeValue += getAcumulativeValueByMaxHour(period);
+                acumulativeValue += getAcumulativeValueByMoreThanOneSubject(period.size());
             }
 
             period = gene.getNight();
             if (!period.isEmpty()) {
                 qtdPeriodsAvailable++;
-                acumulativeValue += getAcumulativeValueByMaxHour(period);
+                acumulativeValue += getAcumulativeValueByMoreThanOneSubject(period.size());
             }
         }
 
         float total = (qtdPeriodsAvailable != 0) ? (float)acumulativeValue / (float)qtdPeriodsAvailable : 0;
         return total;
+    }
+
+    /**
+     * Return the acumulative value in relation of
+     * the quantity of subjects by period. If the period
+     * have more than one alocated subject 100 is returned,
+     * 0 otherwise. <br/>
+     *
+     * @param  qttSubjectsByPeriod   the quantity of subjects by period.
+     *
+     * @return
+     *         100 if have more than 1; <br/>
+     *         0 otherwise.
+     */
+    public int getAcumulativeValueByMoreThanOneSubject(int qttSubjectsByPeriod) {
+        int acumulativeValue = 0;
+        if (qttSubjectsByPeriod > 1) {
+            acumulativeValue = 100;
+        }
+
+        return acumulativeValue;
     }
 
     /**

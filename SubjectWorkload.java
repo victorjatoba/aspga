@@ -1,23 +1,15 @@
 /*
   Copyright 2013 by Victor Jatoba
   Licensed under the Academic Free License version 3.0
-  See the file "LICENSE" for more information
 */
 
 package ec.app.aspga;
 
-import ec.vector.Gene;
-import ec.EvolutionState;
-import ec.util.*;
-
-import java.lang.*;
-import java.io.DataOutput;
-
 /**
  * SubjectWorkloadGene.java
  *
- * Modified: Mon Nov 26 02:29 2013
- * By: Victor Jatoba
+ * @author Victor Jatoba
+ * @version Mon Nov 26 02:29 2013
  */
 public class SubjectWorkload {
 

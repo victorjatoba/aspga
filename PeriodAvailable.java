@@ -8,10 +8,14 @@
 package ec.app.aspga;
 import java.util.ArrayList;
 /**
- * PeriodAvailable.java
+ * Is the class that contains the study cycle by 
+ * difficulty and facility of to learn. <br/>
+ * Here is the data structured used for storing
+ * the Day periods available and the facility
+ * level for to learn by user.
  *
- * Modified: Mon Jan 20 22:42 2014
- * By: Victor Jatoba
+ * @author Victor Jatoba
+ * @version Mon Jan 20 22:42 2014
  */
 public class PeriodAvailable {
 

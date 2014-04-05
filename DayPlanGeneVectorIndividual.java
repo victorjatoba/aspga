@@ -1,7 +1,6 @@
 /*
-  Copyright 2013 by Victor Jatoba
+  Copyright 2014 by Victor Jatoba
   Licensed under the Academic Free License version 3.0
-  See the file "LICENSE" for more information
 */
 
 
@@ -9,13 +8,13 @@ package ec.app.aspga;
 
 import ec.vector.*;
 import ec.EvolutionState;
-import ec.util.*;
 import java.util.ArrayList;
 
 /**
  * DayPlanGeneVectorIndividual.java
  *
- * Modified: Thu Nov 26 02:29 2013
+ * The implementation of the crossover operators.
+ *
  * @author Victor Jatoba
  * @version 1.0.0
  */
@@ -66,7 +65,6 @@ public class DayPlanGeneVectorIndividual extends GeneVectorIndividual {
     }
 
     public void perDayCrossover(EvolutionState state, int thread, GeneVectorIndividual ind, int x) {
-    	GeneVectorSpecies s = (GeneVectorSpecies) species;
         GeneVectorIndividual i = ind;
         Gene tmp;
 
@@ -76,7 +74,6 @@ public class DayPlanGeneVectorIndividual extends GeneVectorIndividual {
     }
 
     public void perPeriodCrossover(EvolutionState state, int thread, GeneVectorIndividual ind) {
-		GeneVectorSpecies s = (GeneVectorSpecies) species;
         GeneVectorIndividual i = ind;
 
     	int y = state.random[thread].nextInt(i.genome.length);

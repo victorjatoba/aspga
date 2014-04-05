@@ -4,15 +4,17 @@
   See the file "LICENSE" for more information
 */
 
-
 package ec.app.aspga;
-import java.util.ArrayList;
 
 /**
- * Student.java
+ * The Class that have the student features. <br/>
+ * The Student contains:<br/><br/>
+ * 
+ * <code>{@link String}</code> NAME <br/>
+ * <code>float</code> HOURSTOLEISURE <br/>
  *
- * Modified: Mon Jan 20 23:34 2014
- * By: Victor Jatoba
+ * @author Victor Jatoba
+ * @version Mon Jan 20 23:34 2014
  */
 public class Student {
 

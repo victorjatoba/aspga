@@ -4,14 +4,19 @@
   See the file "LICENSE" for more information
 */
 
-
 package ec.app.aspga;
 
 /**
- * Period.java
+ * The Class that contains the Period features. <br/>
+ * The period contains three character to define the information of it. <br/>
+ * A period is formed by: <br/><br/>
  *
- * Modified: Mon Jan 20 22:42 2014
- * By: Victor Jatoba
+ * <code>char</code> MONING <br/>
+ * <code>char</code> AFTERNOON <br/>
+ * <code>char</code> NIGHT <br/>
+ *
+ * @author Victor Jatoba
+ * @version Mon Jan 20 22:42 2014
  */
 public class Period {
 	private char morning;

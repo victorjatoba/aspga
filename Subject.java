@@ -6,13 +6,17 @@
 
 
 package ec.app.aspga;
-import ec.app.aspga.util.ValidationUtil;
 
 /**
- * Subject.java
+ * The Subject class that contains it features. <br/>
+ * The subject is formed by: <br/><br/>
  *
- * Modified: Mon Nov 26 02:29 2013
- * By: Victor Jatoba
+ * <code>int</code> ID <br/>
+ * <code>{@link String}</code> NAME <br/>
+ * <code>int</code> DIFFICULT <br/>
+ *
+ * @author Victor Jatoba
+ * @version Mon Nov 26 02:29 2013
  */
 public class Subject
 {

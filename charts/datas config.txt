@@ -52,32 +52,33 @@ G M B
 G M B
 
 
-----SUBJECTS INPUT----
-
-[15 Matérias] [F]
-Matéria1	100
-Matéria2	100
-Matéria3	80
-Matéria4	70
-Matéria5	70
-Matéria6	60
-Matéria7	50
-Matéria8	50
-Matéria9	40
-Matéria10	30
-Matéria11	30
-Matéria12	20
-Matéria13	10
-Matéria14	10
-Matéria15	0
+----COURSE INFORMATION----
 
 [06 Matérias] [G]
-Matéria1	100
-Matéria2	70
-Matéria3	50
-Matéria4	35
-Matéria5	20
-Matéria6	8
+Matéria1 100
+Matéria2 70
+Matéria3 50
+Matéria4 35
+Matéria5 20
+Matéria6 8
+
+[15 Matérias] [F]
+Matéria1 100
+Matéria2 100
+Matéria3 80
+Matéria4 70
+Matéria5 70
+Matéria6 60
+Matéria7 50
+Matéria8 50
+Matéria9 40
+Matéria10 30
+Matéria11 30
+Matéria12 20
+Matéria13 10
+Matéria14 10
+Matéria15 0
+
 __________________________________________________________________________
 __________________________________________________________________________
 

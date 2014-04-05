@@ -1,9 +1,7 @@
 /*
   Copyright 2013 by Victor Jatoba
   Licensed under the Academic Free License version 3.0
-  See the file "LICENSE" for more information
 */
-
 
 package ec.app.aspga;
 
@@ -11,24 +9,22 @@ import ec.vector.Gene;
 import ec.EvolutionState;
 import ec.util.*;
 
-import java.lang.*;
-import java.io.DataOutput;
 import java.util.ArrayList;
 import java.io.File;
 import java.util.Vector;
 import java.io.FileInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Random;
 
 /**
- * DayPlanGene.java
- *
- * Modified: Thu Nov 26 02:29 2013
+ * The Gene that represent the individual genome. <br/>
+ * In this class is implemented the mutation logic, 
+ * the creation of the initial population and the method
+ * used to compare two individuals.
+ * 
  * @author Victor Jatoba
- * @version 1.0.0
+ * @version Wed Mar 12 02:29 2014
  */
 
 @SuppressWarnings("serial")
@@ -251,8 +247,8 @@ public class DayPlanGene extends Gene {
      *         <code>true</code>	if the subjectWorkload was added successfully. <br/>
      *         <code>false</code>  otherwise.
      *
-     * @see {@link State}
-     * @see {@link SubjectWorkload}
+     * @see EvolutionState
+     * @see SubjectWorkload
      */
     public Boolean insertSubjectWorkload(EvolutionState state, final int thread) {
 
@@ -434,7 +430,7 @@ public class DayPlanGene extends Gene {
      *
      * @return <code>Subject</code> the new instance.
      *
-     * @see {@link Subject}
+     * @see Subject
      */
     public Subject getSubjectDifferentOf(Subject subject, EvolutionState state, int thread) {
         Subject subjectNew  = subjects.get(state.random[thread].nextInt(subjects.size()));
@@ -457,7 +453,7 @@ public class DayPlanGene extends Gene {
      * @param  subject
      * @return <code>Subject</code> the new instance from subject.
      *
-     * @see {@link Subject}
+     * @see Subject
      */
     public Subject getNewSubjectInstance(Subject subject) {
         Subject subjectRandom = new Subject();
@@ -476,8 +472,8 @@ public class DayPlanGene extends Gene {
      *
      * @return <code>SubjectWorkload</code> the new instance from subjectWorkload.
      *
-     * @see {@link SubjectWorkload}
-     * @see {@link ec.EvolutionState}
+     * @see SubjectWorkload
+     * @see ec.EvolutionState
      */
     public SubjectWorkload getNewSubjectWorkloadInstance(EvolutionState state, int thread) {
         Subject subject = subjects.get(state.random[thread].nextInt(subjects.size()));
@@ -599,7 +595,7 @@ public class DayPlanGene extends Gene {
     * @param  file
     * @return <code>Vector<String></code> the file converted.
     *
-    * @see {@link java.util.Vector}
+    * @see java.util.Vector
     */
     public Vector<String> convertFileToVectorString(File file) {
 
