@@ -1,0 +1,40 @@
+#1
+
+Download ecj:
+
+http://cs.gmu.edu/~eclab/projects/ecj/
+
+after extract the package in C:\
+
+#2
+Steps to run the project:
+
+From windows command line (cmd) :
+
+action		|		comand
+____________|_______________________________________
+1. set		|   c:\> set ECJ_CLASSPATH=C:/ecj;%CLASSPATH% (or see #3)
+2. compile	|	c:\ecj\> javac ec\app\aspga\SchedulingStudyPlanProblem.java
+3. run		|   c:\> java -cp %CLASSPATH% ec.Evolve -file c:\ecj\ec\app\aspga\aspga.params
+
+then you can run the tutorial 1 code from any directory using:
+
+C:\>  java -cp %ECJ_CLASSPATH% ec.Evolve -file c:\ecj\ec\app\tutorial1\tutorial1.params
+
+
+#3
+If you want to permanently add ECJ_CLASSPATH as environment variable, go to control panel and under system settings (advanced system settings popup window)  hit the environment variables button and add ECJ_CLASSPATH variable. Example:
+
+[user variables]:
+Variable: 	CLASSPATH
+Value:		%ECJ_CLASSPATH%;%JFREECHART%;%JCOMMON%;
+
+[system variables]:
+Variable:	ECJ_CLASSPATH
+Value:		C:\ecj
+
+Variable:	JFREECHART
+Value:		C:\ecj\jfreechart-1.0.13.jar
+
+Variable:	JCOMMON
+Value:		C:\ecj\jcommon-1.0.16.jar

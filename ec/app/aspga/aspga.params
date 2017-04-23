@@ -1,0 +1,96 @@
+# Copyright 2014 by Victor Jatoba
+# Licensed under the Academic Free License version 3.0
+# See the file "LICENSE" for more information
+
+#jobs = 50
+breedthreads = 1
+evalthreads  = 1
+seed.0       = time
+
+state		= ec.simple.SimpleEvolutionState
+
+pop			= ec.Population
+init		= ec.simple.SimpleInitializer
+finish		= ec.simple.SimpleFinisher
+breed		= ec.simple.SimpleBreeder
+eval		= ec.simple.SimpleEvaluator
+stat		= ec.simple.SimpleStatistics
+exch		= ec.simple.SimpleExchanger
+
+generations				= 1000
+quit-on-run-complete	= true
+checkpoint				= false
+checkpoint-prefix		= ec
+checkpoint-modulo		= 1
+
+stat = ec.simple.SimpleStatistics
+stat.file		= outs/out.stat
+
+pop.subpops		= 1
+pop.subpop.0	= ec.Subpopulation
+
+pop.subpop.0.size 				= 1000
+pop.subpop.0.duplicate-retries 	= 0
+pop.subpop.0.species 			= ec.vector.GeneVectorSpecies
+
+pop.subpop.0.species.fitness 	= ec.simple.SimpleFitness
+pop.subpop.0.species.ind		= ec.app.aspga.DayPlanGeneVectorIndividual
+pop.subpop.0.species.gene 		= ec.app.aspga.DayPlanGene
+
+pop.subpop.0.species.genome-size	= 07
+#below is the per-gene crossover probability, not the probability that the entire individual will be crossed over.
+pop.subpop.0.species.crossover-prob	= 0.25
+pop.subpop.0.species.crossover-type	= any
+base.likelihood = 0.8
+
+#each gene is only mutated with a certain probability
+pop.subpop.0.species.mutation-prob	= 0.00001
+
+# Place on one line. The Genetic Algorithm pipeline way.
+pop.subpop.0.species.pipe					= ec.vector.breed.VectorMutationPipeline
+pop.subpop.0.species.pipe.source.0			= ec.vector.breed.VectorCrossoverPipeline
+pop.subpop.0.species.pipe.source.0.source.0 = ec.select.TournamentSelection
+pop.subpop.0.species.pipe.source.0.source.1 = ec.select.TournamentSelection
+
+select.tournament.size = 3
+
+#
+# We specify our problem here
+#
+
+eval.problem = ec.app.aspga.SchedulingStudyPlanProblem
+
+#
+# Here we specify the particular files to do induction over
+#
+
+eval.problem.courseInformation 		= datastructure/CourseInformation.in
+eval.problem.intelectualAvailable 	= datastructure/IntelectualAvailable.in
+eval.problem.dayperiodAvailable 	= datastructure/DayPeriodAvailable.in
+eval.problem.studentInformation 	= datastructure/StudentInformation.in
+
+#
+# File to be read by gene
+#
+
+pop.subpop.0.species.gene.courseInformation = datastructure/CourseInformation.in
+
+#
+# The configurations responsible for generate the charts.
+#
+
+stat.num-children = 1
+stat.child.0 = ec.app.aspga.charts.SimpleXYSeriesChartStatistics
+stat.child.0.file = charts/run1.pdf
+stat.child.0.title = Best of Generation
+stat.child.0.x-axis-label = generation
+stat.child.0.y-axis-label = fitness
+
+#
+# output  configurations
+#
+
+# print-params = true
+# print-unaccessed-params = true
+# print-unused-params = true
+

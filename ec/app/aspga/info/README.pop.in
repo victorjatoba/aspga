@@ -1,0 +1,28 @@
+# DayPeriodAvailable.in
+
+	Informing if user have availability in the period of the day (morning, afternoom and night) in each day of the week. Each line represent one day of the week. 1 is morning, 2 is tuesday, and so on.
+
+	B = Big
+	S = Smal
+	N = Nothing
+
+
+
+# IntelectualAvailable.in
+
+	Informing if user have facility or dificulty for to learn in the period of the day (morning, afternoom and night) in each day of the week. Each line represent one day of the week. 1 is morning, 2 is tuesday, and so on.
+
+	G = Good
+	M = Median
+	B = Bad
+
+# CourseInformation.in
+
+	Informing the subject and your difficulty from 0 to 100. 0 don't have difficulty, 100 biggest difficulty.
+	Classification:
+
+	00 <= n < 20      Easy
+	20 <= n < 40      Easy/Medium
+	40 <= n < 60      Medium
+	60 <= n < 80      Hard/Medium
+	80 <= n <= 100     Hard
