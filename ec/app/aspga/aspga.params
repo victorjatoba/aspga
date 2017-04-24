@@ -24,6 +24,10 @@ checkpoint-prefix		= ec
 checkpoint-modulo		= 1
 
 stat = ec.simple.SimpleStatistics
+# MAKE YOUR TIME USE
+# stat.file		= out.stat
+
+# SMART STUDY PLAN USE
 stat.file		= outs/out.stat
 
 pop.subpops		= 1
@@ -64,6 +68,13 @@ eval.problem = ec.app.aspga.SchedulingStudyPlanProblem
 # Here we specify the particular files to do induction over
 #
 
+# MAKE YOUR TIME USE
+# eval.problem.courseInformation 		= datastructure/CourseInformation.in
+# eval.problem.intelectualAvailable 	= datastructure/IntelectualAvailable.in
+# eval.problem.dayperiodAvailable 	= datastructure/DayPeriodAvailable.in
+# eval.problem.studentInformation 	= datastructure/StudentInformation.in
+
+# SMART STUDY PLAN USE
 eval.problem.courseInformation 		= datastructure/CourseInformation.in
 eval.problem.intelectualAvailable 	= datastructure/IntelectualAvailable.in
 eval.problem.dayperiodAvailable 	= datastructure/DayPeriodAvailable.in
@@ -73,6 +84,10 @@ eval.problem.studentInformation 	= datastructure/StudentInformation.in
 # File to be read by gene
 #
 
+# MAKE YOUR TIME USE
+# pop.subpop.0.species.gene.courseInformation = datastructure/CourseInformation.in
+
+# SMART STUDY PLAN USE
 pop.subpop.0.species.gene.courseInformation = datastructure/CourseInformation.in
 
 #
@@ -94,3 +109,6 @@ stat.child.0.y-axis-label = fitness
 # print-unaccessed-params = true
 # print-unused-params = true
 
+# MAKE YOUR TIME USE
+# Turn off printing to the screen and do not create statistics logs
+stat.silent = true
