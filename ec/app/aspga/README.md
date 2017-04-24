@@ -11,3 +11,6 @@ License:
 
 Copyright (c) 2014 Victor Jatobá.
 Released under the MIT License.
+
+_______
+* All files from ec/app/aspga are able to be used for another application.
