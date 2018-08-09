@@ -1,7 +1,7 @@
 AspGA
 =====
 
-A Automatic Study Plan using Genetic Algorithm.
+Automatic Study Plan using Genetic Algorithm.
 
 Description:
 
